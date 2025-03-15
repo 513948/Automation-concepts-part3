@@ -29,9 +29,10 @@ Resources:
     Properties:
       DBInstanceIdentifier: !Ref DBInstanceIdentifier
       DBInstanceClass: !Ref DBInstanceClass
-      Engine: "microsoftsql" 
+      Engine: "Microsoft SQL Server" 
       DBName: !Ref DBName
       MasterUsername: !Ref DBUsername
+      LicenseModel: license-included
       MasterUserPassword: !Ref DBPassword
       AllocatedStorage: 20 
       PubliclyAccessible: false 
