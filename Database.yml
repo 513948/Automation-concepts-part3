@@ -21,7 +21,7 @@ Parameters:
   DBPassword:
     Type: String
     NoEcho: true
-    Description: The password for the database master user
+    Description: The password for the database master user (minimun 8 letters)
     
 Resources:
   RDSInstance:
