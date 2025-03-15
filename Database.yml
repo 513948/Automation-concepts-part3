@@ -29,7 +29,7 @@ Resources:
     Properties:
       DBInstanceIdentifier: !Ref DBInstanceIdentifier
       DBInstanceClass: !Ref DBInstanceClass
-      Engine: "Microsoft SQL Server" 
+      Engine: sqlserver-standard 
       DBName: !Ref DBName
       MasterUsername: !Ref DBUsername
       LicenseModel: license-included
