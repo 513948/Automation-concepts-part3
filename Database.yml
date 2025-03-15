@@ -1,0 +1,15 @@
+Parameters:
+  AvailabilityZone:
+    Description: Please enter the name of the first Availability Zone.
+    Type: String
+    Default: us-east-1a
+Resources:
+    Database:
+        Type: AWS::RDS::DBInstance
+        Properties:
+            AvailabilityZone: !Ref AvailabilityZone
+            DBInstanceClass: db.t3.small
+            DBName: DotNetDatabase
+            LicenseModel: license-included
+            MasterUsername: DotNetUser
+            MasterUserPassword: ToBeAdded
