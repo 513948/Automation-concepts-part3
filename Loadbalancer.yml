@@ -1,17 +1,6 @@
 # FIRST VERSION LOT OF WORK TO DO
 
 Parameters:
-  VPCId:
-    Type: String
-    Description: VPC ID for the load balancer
-
-  Subnet1Id:
-    Type: String
-    Description: Subnet ID for the first availability zone
-
-  Subnet2Id:
-    Type: String
-    Description: Subnet ID for the second availability zone
 
   SecurityGroupId:
     Type: String
