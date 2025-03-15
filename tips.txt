@@ -1,0 +1,69 @@
+CLOUDSHIRT .NET WEBAPP
+
+CloudShirt is een .NET applicatie. Je hebt een .NET SDK nodig (ASP.NET Core 6.0) om zo'n applicatie te kunnen bouwen.
+
+Test of je dotnet kunt opstarten in de program-rootfolder
+dotnet --info
+
+Tenminste als je de onderdelen ApplicationCore, BlazorAdmin, BlazorShared, Infrastructure, PublicApi en Web los van elkaar bouwt.
+De onderdelen vormen samen twee services (zie docker-compose.yml) :  eshopwebmvc en eshoppublicapi. 
+Daarnaast is er een sqlserver benodigd.
+
+
+Voordat je CloudShirt draait moet je een database instelling maken.
+Bron: staat in src\Infrastructure\Dependencies.cs
+Keuze uit drie opties, waarvan wij optie 1 kiezen. Overigens is de lokale database default, dus dat gaat mis als je geen lokale DB installeert op je webserver.
+1. database op een externe database server.  Hiervoor moet je het database endpoint in de file /src/Web/appsettings.json substitueren.
+Voorbeeld:
+Hierin is ${RDSENDPOINT} de template parameter RDSENDPOINT. 
+Je kunt ook ${RDSENDPOINT} in de userdata substitueren met meerdere parameters op de volgende manier:
+      UserData:  
+        Fn::Base64: !Sub 
+        - |
+          #!/bin/bash
+          yum install -y git
+          cd /root
+          git clone https://github.com/looking4ward/CloudShirt.git
+          sed -i 's/Server.*CatalogDb;/Server=${RDSENDPOINT},1433;User ID=csadmin;Password=cspasswd;Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/' /root/CloudShirt/src/Web/appsettings.json
+          sed -i 's/Server.*Identity;/Server=${RDSENDPOINT},1433;User ID=csadmin;Password=cspasswd;Initial Catalog=Microsoft.eShopOnWeb.Identity;/' /root/CloudShirt/src/Web/appsettings.json
+        - RDSENDPOINT:
+            Fn::ImportValue: myRDS:RDSEndpointAddress
+
+Kijk ook hier eens hoe ze subsitutie van parameters in userdata doen:  (regels 355-260  en 302-304)
+https://github.com/awslabs/aws-cloudformation-templates/blob/master/aws/solutions/WordPress_Single_Instance.yaml
+
+
+2. in memory database.  Zet de optie UseOnlyInMemoryDatabase op true in.  (deze optie niet gebruiken) 
+3. lokale database.  (deze optie niet gebruiken)
+Hiervoor heb je om dit lokaal te draaien een LocalDB nodig, die je kunt installeren als onderdeel van SQL Server Express 2016.
+Install SQL Server Express 2016 SP2
+https://www.sqlshack.com/how-to-download-and-install-sql-server-2016-express-edition/
+
+
+DOTNET PUBLICEREN EN OPSTARTEN
+voeg een dotnet publish toe vanuit de Web map en zorg dat de output in een aparte release folder komt.
+Zie: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+
+voeg een dotnet Web.dll toe vanuit de aparte release folder.
+De techniek uit b en c staat ook verwerkt in de Dockerfile in de Web folder van het Cloudshirt project
+https://github.com/looking4ward/CloudShirt/blob/main/src/Web/Dockerfile
+Voor opdracht 2 kan je hier ook gebruik van maken.
+
+
+DATABASE TIPS
+Database aanpassingen (niet te kleine db kiezen en Monitoring moet uit staan):
+      DBInstanceClass: db.t3.small
+      LicenseModel: license-included
+      MonitoringInterval: 0
+      EngineVersion niet gebruiken
+
+
+
+CLOUDSHIRT MET DOCKER
+Voor het opstarten van CloudShirt is er ook een Dockerversie, die elk van de services bouwt.
+Bekijk de Docker instellingen eens in /src/Web/Dockerfile.  
+Je ziet hier dat als je er eerst een build-image wordt gedraaid en vervolgens een runtime-image.
+Om CloudShirt te draaien via Docker, doe je dit met het commando "docker-compose build" en "docker-compose up" 
+vanuit de project-rootfolder.
+In de project-rootfolder staat ook een docker-compose.dcproj, waarbij je nog settings kunt aanpassen.
+Hierin staat bijvoorbeeld ook het Docker-targetOS
