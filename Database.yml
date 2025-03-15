@@ -34,7 +34,7 @@ Resources:
       MasterUsername: !Ref DBUsername
       LicenseModel: license-included
       MasterUserPassword: !Ref DBPassword
-      AllocatedStorage: 20 
+      AllocatedStorage: 45 
       PubliclyAccessible: false 
       MonitoringInterval: 0
       VPCSecurityGroups:
@@ -62,8 +62,3 @@ Outputs:
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", RDSEndpoint ] ] 
       
-  DBInstanceARN:
-    Description: "The ARN of the RDS instance"
-    Value: !GetAtt RDSInstance.Arn
-    Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", RDSArn ] ] 
