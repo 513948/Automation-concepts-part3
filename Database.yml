@@ -1,15 +1,57 @@
 Parameters:
-  AvailabilityZone:
-    Description: Please enter the name of the first Availability Zone.
+  DBInstanceIdentifier:
     Type: String
-    Default: us-east-1a
+    Default: "cloudshirt-db-instance"
+    Description: The identifier for the RDS database instance
+
+  DBInstanceClass:
+    Type: String
+    Default: "db.t3.small"
+    Description: The compute and memory capacity of the DB instance
+
+  DBName:
+    Type: String
+    Default: "cloudshirtdb"
+    Description: The name of the database to create when the DB instance is created
+
+  DBUsername:
+    Type: String
+    Description: The username for the database master user
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: The password for the database master user
+
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC where the database will be launched
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: The subnet IDs for the RDS instance
+
 Resources:
-    Database:
-        Type: AWS::RDS::DBInstance
-        Properties:
-            AvailabilityZone: !Ref AvailabilityZone
-            DBInstanceClass: db.t3.small
-            DBName: DotNetDatabase
-            LicenseModel: license-included
-            MasterUsername: DotNetUser
-            MasterUserPassword: ToBeAdded
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: "microsoftsql" 
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      AllocatedStorage: 20 
+      PubliclyAccessible: false 
+      VPCSecurityGroups:
+        - Ref: RDSSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+
+Outputs:
+  DBInstanceEndpoint:
+    Description: "The endpoint of the RDS instance"
+    Value: !GetAtt RDSInstance.Endpoint.Address
+
+  DBInstanceARN:
+    Description: "The ARN of the RDS instance"
+    Value: !GetAtt RDSInstance.Arn
