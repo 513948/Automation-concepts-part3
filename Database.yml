@@ -30,7 +30,6 @@ Resources:
       DBInstanceIdentifier: !Ref DBInstanceIdentifier
       DBInstanceClass: !Ref DBInstanceClass
       Engine: "microsoftsql" 
-      AvailabilityZone: !ImportValue Multi-AZ:AvailabilityZone1
       DBName: !Ref DBName
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
@@ -53,6 +52,7 @@ Resources:
       DBSubnetGroupDescription: "DB Subnet Group for RDS"
       SubnetIds:
         - !ImportValue Multi-AZ:MyFirstPrivateSubnet
+        - !ImportValue Multi-AZ:MySecondPrivateSubnet
 
 Outputs:
   DBInstanceEndpoint:
