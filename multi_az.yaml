@@ -1,4 +1,4 @@
-xDescription: An empty VPC (10.0.0.0/16) with one (public) subnet (/24) with internet gateway and routing table that allows full interaction between subnet and outside world.
+Description: An empty VPC (10.0.0.0/16) with one (public) subnet (/24) with internet gateway and routing table that allows full interaction between subnet and outside world.
 Parameters:
   VPCCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC.
