@@ -22,21 +22,6 @@ Parameters:
     Type: String
     NoEcho: true
     Description: The password for the database master user
-
-  VPCId:
-    Type: AWS::EC2::VPC::Id
-    Default: !ImportValue Multi-AZ:VPC
-    Description: VPC where the database will be launched
-
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-    Default: !ImportValue Multi-AZ:MyFirstPrivateSubnet
-    Description: The subnet IDs for the RDS instance
-
-  AvailabilityZone1:
-    Type: String
-    Default: !ImportValue Multi-AZ:AvailabilityZone1
-    Description: Please enter the name of the first Availability Zone.
     
 Resources:
   RDSInstance:
@@ -45,7 +30,7 @@ Resources:
       DBInstanceIdentifier: !Ref DBInstanceIdentifier
       DBInstanceClass: !Ref DBInstanceClass
       Engine: "microsoftsql" 
-      AvailabilityZone: !Ref AvailabilityZone1
+      AvailabilityZone: !ImportValue Multi-AZ:AvailabilityZone1
       DBName: !Ref DBName
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
@@ -55,6 +40,19 @@ Resources:
       VPCSecurityGroups:
         - Ref: RDSSecurityGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
+
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for RDS instance"
+      VpcId: !ImportValue Multi-AZ:VPC
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "DB Subnet Group for RDS"
+      SubnetIds:
+        - !ImportValue Multi-AZ:MyFirstPrivateSubnet
 
 Outputs:
   DBInstanceEndpoint:
