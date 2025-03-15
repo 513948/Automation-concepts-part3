@@ -13,8 +13,8 @@ Resources:
     Properties:
       Name: cloudshirt-alb
       Subnets:
-        - Ref: Subnet1Id
-        - Ref: Subnet2Id
+        - Ref: !ImportValue Multi-AZ:MyFirstSubnet
+        - Ref: !ImportValue Multi-AZ:MySecondSubnet
       SecurityGroups:
         - Ref: SecurityGroupId
       Scheme: internet-facing
