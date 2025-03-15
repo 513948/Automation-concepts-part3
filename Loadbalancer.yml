@@ -31,10 +31,10 @@ Resources:
       Name: cloudshirt-target-group
       Port: 80
       Protocol: HTTP
-      VpcId: Ref: VPCId
+      VpcId: !ImportValue Multi-AZ:VPC
       HealthCheckProtocol: HTTP
       HealthCheckPort: '80'
-      HealthCheckPath: /healthcheck  # Ensure your application has a health check endpoint
+      HealthCheckPath: /healthcheck  # MUST BE CHANGED
       Matcher:
         HttpCode: 200
       TargetType: instance
@@ -58,7 +58,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: "Security group for the ALB"
-      VpcId: !Ref VPCId
+      VpcId: !ImportValue Multi-AZ:VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '80'
