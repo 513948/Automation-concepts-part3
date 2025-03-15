@@ -1,0 +1,82 @@
+# FIRST VERSION LOT OF WORK TO DO
+
+Parameters:
+  VPCId:
+    Type: String
+    Description: VPC ID for the load balancer
+
+  Subnet1Id:
+    Type: String
+    Description: Subnet ID for the first availability zone
+
+  Subnet2Id:
+    Type: String
+    Description: Subnet ID for the second availability zone
+
+  SecurityGroupId:
+    Type: String
+    Description: Security Group ID for the load balancer
+
+Resources:
+  # Load Balancer
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: cloudshirt-alb
+      Subnets:
+        - Ref: Subnet1Id
+        - Ref: Subnet2Id
+      SecurityGroups:
+        - Ref: SecurityGroupId
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+      Type: application
+      IpAddressType: ipv4
+
+  # Target Group
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: cloudshirt-target-group
+      Port: 80
+      Protocol: HTTP
+      VpcId: Ref: VPCId
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: '80'
+      HealthCheckPath: /healthcheck  # Ensure your application has a health check endpoint
+      Matcher:
+        HttpCode: 200
+      TargetType: instance
+
+  # Listener for ALB
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            StatusCode: 200
+            MessageBody: "OK"
+            ContentType: text/plain
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+
+  # Security Group for the Load Balancer
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for the ALB"
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: '0.0.0.0/0'
+
+Outputs:
+  LoadBalancerDNS:
+    Description: "DNS Name of the Load Balancer"
+    Value: !GetAtt ALB.DNSName
