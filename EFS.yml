@@ -11,8 +11,7 @@ Resources:
     Properties:
       FileSystemId: !Ref EFSFileSystem
       SubnetId: !ImportValue Multi-AZ:MyFirstPrivateSubnet
-      SecurityGroups:
-        - !Ref EFSecurityGroup
+      SecurityGroup: !Ref EFSecurityGroup
 
   EFSMountTarget2:
     Type: 'AWS::EFS::MountTarget'
