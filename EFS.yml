@@ -1,5 +1,16 @@
 Resources:
   # EFS File System
+  
+  EFSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Security Group for EC2 to access EFS'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '2049'
+          ToPort: '2049'
+          CidrIp: '0.0.0.0/0'  # Allow all inbound connections on port 2049 (NFS)
+
   EFSFileSystem:
     Type: 'AWS::EFS::FileSystem'
     Properties:
@@ -21,13 +32,3 @@ Resources:
       SubnetId: !ImportValue Multi-AZ:MySecondPrivateSubnet
       SecurityGroups:
         - !Ref EFSecurityGroup
-
-  EFSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
-    Properties:
-      GroupDescription: 'Security Group for EC2 to access EFS'
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '2049'
-          ToPort: '2049'
-          CidrIp: '0.0.0.0/0'  # Allow all inbound connections on port 2049 (NFS)
