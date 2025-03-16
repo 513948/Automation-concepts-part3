@@ -1,0 +1,35 @@
+Resources:
+  # EFS File System
+  EFSFileSystem:
+    Type: 'AWS::EFS::FileSystem'
+    Properties:
+      PerformanceMode: 'generalPurpose'
+      Encrypted: true 
+
+  # EFS Mount Target for each Availability Zone (AZ)
+  EFSMountTarget1:
+    Type: 'AWS::EFS::MountTarget'
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      SubnetId: !ImportValue Multi-AZ:MyFirstPrivateSubnet
+      SecurityGroups:
+        - !Ref EFSecurityGroup
+
+  EFSMountTarget2:
+    Type: 'AWS::EFS::MountTarget'
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      SubnetId: !ImportValue Multi-AZ:MySecondPrivateSubnet
+      SecurityGroups:
+        - !Ref EFSecurityGroup
+
+  # Security Group to allow EC2 instances to access the EFS
+  EFSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Security Group for EC2 to access EFS'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '2049'
+          ToPort: '2049'
+          CidrIp: '0.0.0.0/0'  # Allow all inbound connections on port 2049 (NFS)
