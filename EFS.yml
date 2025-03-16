@@ -23,7 +23,7 @@ Resources:
       FileSystemId: !Ref EFSFileSystem
       SubnetId: !ImportValue Multi-AZ:MyFirstPrivateSubnet
       SecurityGroups:
-        - !Ref SG
+        - !GetAtt SG.GroupId
     DependsOn: SG
 
   EFSMountTarget2:
@@ -32,5 +32,5 @@ Resources:
       FileSystemId: !Ref EFSFileSystem
       SubnetId: !ImportValue Multi-AZ:MySecondPrivateSubnet
       SecurityGroups:
-        - !Ref SG
+        - !GetAtt SG.GroupId
     DependsOn: SG
