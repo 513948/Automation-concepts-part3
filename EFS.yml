@@ -1,7 +1,7 @@
 Resources:
   # EFS File System
   
-  EFSG:
+  SG:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: 'Security Group for EC2 to access EFS'
@@ -23,8 +23,8 @@ Resources:
       FileSystemId: !Ref EFSFileSystem
       SubnetId: !ImportValue Multi-AZ:MyFirstPrivateSubnet
       SecurityGroups:
-        - !Ref EFSG
-   DependsOn: EFSG
+        - !Ref SG
+   DependsOn: SG
 
   EFSMountTarget2:
     Type: 'AWS::EFS::MountTarget'
@@ -32,5 +32,5 @@ Resources:
       FileSystemId: !Ref EFSFileSystem
       SubnetId: !ImportValue Multi-AZ:MySecondPrivateSubnet
       SecurityGroups:
-        - !Ref EFSG
-   DependsOn: EFSG
+        - !Ref SG
+   DependsOn: SG
