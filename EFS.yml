@@ -24,7 +24,7 @@ Resources:
       SubnetId: !ImportValue Multi-AZ:MyFirstPrivateSubnet
       SecurityGroups:
         - !Ref EFSG
-    DependsOn: EFSG
+
 
   EFSMountTarget2:
     Type: 'AWS::EFS::MountTarget'
@@ -33,4 +33,4 @@ Resources:
       SubnetId: !ImportValue Multi-AZ:MySecondPrivateSubnet
       SecurityGroups:
         - !Ref EFSG
-    DependsOn: EFSG
+
