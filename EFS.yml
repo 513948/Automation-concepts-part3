@@ -6,7 +6,6 @@ Resources:
       PerformanceMode: 'generalPurpose'
       Encrypted: true 
 
-  # EFS Mount Target for each Availability Zone (AZ)
   EFSMountTarget1:
     Type: 'AWS::EFS::MountTarget'
     Properties:
@@ -23,7 +22,6 @@ Resources:
       SecurityGroups:
         - !Ref EFSecurityGroup
 
-  # Security Group to allow EC2 instances to access the EFS
   EFSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
