@@ -1,0 +1,100 @@
+Description: Template for auto scaling group - Ricardo Falchi and Ruud Schutten
+
+Resources:
+  ASGSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP and SSH access
+      VpcId: !ImportValue AZStack:MyFirstVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '5009'
+          ToPort: '5009'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+
+  # Resource LaunchTemplate for EC2 instances (CloudShirt)
+  launchTemplateCS:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: CloudShirtLT
+      LaunchTemplateData: 
+        InstanceType: t2.micro
+        ImageId: ami-08b5b3a93ed654d19
+        UserData: 
+          Fn::Base64: |
+            #!/bin/bash
+
+            RDS_ENDPOINT="cloudshirt-db-instance.calfb8ypi1lz.us-east-1.rds.amazonaws.com"
+            RDS_USERNAME="admin"
+            RDS_PASSWORD="Welkom10!"
+
+            sudo yum update -y
+            sudo yum install -y dotnet-sdk-6.0 git
+            export DOTNET_CLI_HOME=/root/.dotnet
+
+            git clone https://github.com/looking4ward/CloudShirt.git
+            sed -i "s/Server.*CatalogDb;/Server=$RDS_ENDPOINT,1433;User ID=$RDS_USERNAME;Password=$RDS_PASSWORD;Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/" CloudShirt/src/Web/appsettings.json
+            sed -i "s/Server.*Identity;/Server=$RDS_ENDPOINT,1433;User ID=$RDS_USERNAME;Password=$RDS_PASSWORD;Initial Catalog=Microsoft.eShopOnWeb.Identity;/" CloudShirt/src/Web/appsettings.json
+            sed -i "s/Server.*CatalogDb;/Server=$RDS_ENDPOINT,1433;User ID=$RDS_USERNAME;Password=$RDS_PASSWORD;Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/" CloudShirt/src/PublicApi/appsettings.json
+            sed -i "s/Server.*Identity;/Server=$RDS_ENDPOINT,1433;User ID=$RDS_USERNAME;Password=$RDS_PASSWORD;Initial Catalog=Microsoft.eShopOnWeb.Identity;/" CloudShirt/src/PublicApi/appsettings.json
+
+            cd CloudShirt/src/Web
+            sudo dotnet build
+            sudo nohup dotnet run --urls "http://0.0.0.0:80/" &
+            cd /home/ec2-user
+            
+            cd CloudShirt/src/PublicApi
+            sudo dotnet build
+            sudo nohup dotnet run --urls "http://0.0.0.0:5009/" &
+
+        SecurityGroupIds:
+          - !Ref ASGSecurityGroup
+  
+  # Resource AutoScalingGroup launch extra instances when needed
+  AutoScalingGroupCS:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref launchTemplateCS
+        Version: !GetAtt launchTemplateCS.LatestVersionNumber
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 2
+      VPCZoneIdentifier:
+        - !ImportValue AZStack:MyFirstSubnet
+        - !ImportValue AZStack:MySecondSubnet
+      TargetGroupARNs:
+        - !ImportValue LBStack:TargetGroup
+
+  UpScalingSchedule:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroupCS
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 4
+      Recurrence: "0 22 * * MON-SUN" # 22:00 UTC is 18:00 in ET
+
+  DownScalingSchedule:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroupCS
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 2
+      Recurrence: "0 00 * * MON-SUN" # 00:00 UTC is 20:00 in ET
+      
+Outputs:
+  AutoScalingGroupRef:
+    Description: Reference to the AutoScalingGroup
+    Value: !Ref AutoScalingGroupCS
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "AutoscalingGroup" ] ]

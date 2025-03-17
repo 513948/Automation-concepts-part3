@@ -1,0 +1,63 @@
+# Deze main.yml file is de entry point van de CloudFormation stack. (Nog niet aanroepen! werkt nog niet en nog niet af!)
+Description: Main stack that deploys network and database resources
+Parameters:
+  MasterUsername:
+    Type: String
+    Description: The master username for the RDS instance
+    NoEcho: true
+  
+  MasterPassword:
+    Type: String
+    Description: The master password for the RDS instance
+    NoEcho: true
+
+Resources:
+  AZStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://assignment1-cac.s3.amazonaws.com/MultiAZ.yaml
+      Parameters:
+        VPCCIDR: 10.0.0.0/16
+        PublicSubnet1CIDR: 10.0.1.0/24
+        PublicSubnet2CIDR: 10.0.2.0/24
+        PrivateSubnet1CIDR: 10.0.51.0/24
+        PrivateSubnet2CIDR: 10.0.52.0/24
+        AvailabilityZone1: us-east-1a
+        AvailabilityZone2: us-east-1b
+      TimeoutInMinutes: 20
+
+  # WaitHandle:
+  #   Type: AWS::CloudFormation::WaitConditionHandle
+
+  # WaitCondition:
+  #   Type: AWS::CloudFormation::WaitCondition
+  #   DependsOn: AZStack
+  #   Properties:
+  #     Handle: !Ref WaitHandle
+  #     Timeout: '300'
+  #     Count: 0
+
+  DatabaseStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AZStack
+    Properties:
+      TemplateURL: https://assignment1-cac.s3.amazonaws.com/Database.yml
+      Parameters:
+        DBInstanceIdentifier: cloudshirt-db-instance
+        DBInstanceClass: db.t3.small
+        DBName: cloudshirtdb
+        DBUsername: !Ref MasterUsername
+        DBPassword: !Ref MasterPassword
+      TimeoutInMinutes: 30
+
+Outputs:
+  StackRef:
+    Description: The reference to AZStack
+    Value: !Ref AZStack
+  OutputFromAZStack:
+    Description: The output from AZStack
+    Value: !GetAtt AZStack.Outputs.MyFirstVPC
+
+  DBEndpoint:
+    Description: The endpoint of the database
+    Value: !GetAtt DatabaseStack.Outputs.DBInstanceEndpoint

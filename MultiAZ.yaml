@@ -143,44 +143,44 @@ Outputs:
     Description: Reference to the VPC
     Value: !Ref MyFirstVPC
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", VPC ] ] # Fancy way of making the exported variable called "MyBase:VPC"
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstVPC" ] ] # Fancy way of making the exported variable called "MyBase:VPC"
   VPCGatewayAttachmentRef:
     Description: Reference to the VPC gateway attachment
     Value: !Ref MyFirstVPCGatewayAttachment
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MyFirstVPCGatewayAttachment ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstVPCGatewayAttachment" ] ]
   MyFirstRouteTableRef:
     Description: Reference to the VPC route table
     Value: !Ref MyFirstRouteTable
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MyFirstRouteTable ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstRouteTable" ] ]
   MyFirstSubnetRef:
     Description: Reference to my first (public) subnet
     Value: !Ref MyFirstSubnet
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MyFirstSubnet ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstSubnet" ] ]
   MySecondSubnetRef:
     Description: Reference to my second (public) subnet
     Value: !Ref MySecondSubnet
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MySecondSubnet ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "MySecondSubnet" ] ]
   MyFirstPrivateSubnetRef:
     Description: Reference to my first (private) subnet
     Value: !Ref MyFirstPrivateSubnet
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MyFirstPrivateSubnet ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstPrivateSubnet" ] ]
   MySecondPrivateSubnetRef:
     Description: Reference to my second (private) subnet
     Value: !Ref MySecondPrivateSubnet
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", MySecondPrivateSubnet ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "MySecondPrivateSubnet" ] ]
   AvailabilityZone1Ref:
     Description: Reference to Availability Zone 1
     Value: !Ref AvailabilityZone1
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", AvailabilityZone1 ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "AvailabilityZone1" ] ]
   AvailabilityZone2Ref:
     Description: Reference to Availability Zone 2
     Value: !Ref AvailabilityZone2
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", AvailabilityZone2 ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "AvailabilityZone2" ] ]

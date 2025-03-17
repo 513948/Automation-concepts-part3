@@ -1,10 +1,4 @@
-# FIRST VERSION LOT OF WORK TO DO
-
-Parameters:
-
-  SecurityGroupId:
-    Type: String
-    Description: Security Group ID for the load balancer
+Description: Stack for creating loadbalancer
 
 Resources:
   # Load Balancer
@@ -13,11 +7,10 @@ Resources:
     Properties:
       Name: cloudshirt-alb
       Subnets:
-        - Ref: !ImportValue Multi-AZ:MyFirstSubnet
-        - Ref: !ImportValue Multi-AZ:MySecondSubnet
+        - !ImportValue AZStack:MyFirstSubnet
+        - !ImportValue AZStack:MySecondSubnet
       SecurityGroups:
-        - Ref: SecurityGroupId
-      Scheme: internet-facing
+        - !Ref LoadBalancerSecurityGroup
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
           Value: '60'
@@ -31,7 +24,7 @@ Resources:
       Name: cloudshirt-target-group
       Port: 80
       Protocol: HTTP
-      VpcId: !ImportValue Multi-AZ:VPC
+      VpcId: !ImportValue AZStack:MyFirstVPC
       HealthCheckProtocol: HTTP
       HealthCheckPort: '80'
       HealthCheckPath: /healthcheck  # MUST BE CHANGED
@@ -58,7 +51,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: "Security group for the ALB"
-      VpcId: !ImportValue Multi-AZ:VPC
+      VpcId: !ImportValue AZStack:MyFirstVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '80'
@@ -69,3 +62,11 @@ Outputs:
   LoadBalancerDNS:
     Description: "DNS Name of the Load Balancer"
     Value: !GetAtt ALB.DNSName
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "LoadBalancerDNS" ] ]
+
+  TargetGroup:
+    Description: Reference to the Target Group
+    Value: !Ref TargetGroup
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", TargetGroup ] ]
