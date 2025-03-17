@@ -28,8 +28,10 @@ Resources:
       LaunchTemplateData: 
         InstanceType: t2.micro
         ImageId: ami-08b5b3a93ed654d19
+        KeyName: vockey
         UserData: 
           Fn::Base64: |
+          
             #!/bin/bash
 
             RDS_ENDPOINT="cloudshirt-db-instance.calfb8ypi1lz.us-east-1.rds.amazonaws.com"
