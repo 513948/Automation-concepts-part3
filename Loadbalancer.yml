@@ -7,8 +7,8 @@ Resources:
     Properties:
       Name: cloudshirt-alb
       Subnets:
-        - !ImportValue AZStack:MyFirstSubnet
-        - !ImportValue AZStack:MySecondSubnet
+        - !ImportValue AZStack:PublicSubnet1
+        - !ImportValue AZStack:publicSubnet2
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
       LoadBalancerAttributes:
@@ -24,12 +24,7 @@ Resources:
       Name: cloudshirt-target-group
       Port: 80
       Protocol: HTTP
-      VpcId: !ImportValue AZStack:MyFirstVPC
-      HealthCheckProtocol: HTTP
-      HealthCheckPort: '80'
-      HealthCheckPath: /healthcheck  # MUST BE CHANGED
-      Matcher:
-        HttpCode: 200
+      VpcId: !ImportValue AZStack:VPC
       TargetType: instance
 
   # Listener for ALB
@@ -37,11 +32,8 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       DefaultActions:
-        - Type: fixed-response
-          FixedResponseConfig:
-            StatusCode: 200
-            MessageBody: "OK"
-            ContentType: text/plain
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
       LoadBalancerArn: !Ref ALB
       Port: 80
       Protocol: HTTP
@@ -51,7 +43,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: "Security group for the ALB"
-      VpcId: !ImportValue AZStack:MyFirstVPC
+      VpcId: !ImportValue AZStack:VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '80'

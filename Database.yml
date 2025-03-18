@@ -45,7 +45,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: "Security group for RDS instance"
-      VpcId: !ImportValue AZStack:MyFirstVPC
+      VpcId: !ImportValue AZStack:VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 1433
@@ -57,8 +57,8 @@ Resources:
     Properties:
       DBSubnetGroupDescription: "DB Subnet Group for RDS"
       SubnetIds:
-        - !ImportValue AZStack:MyFirstPrivateSubnet
-        - !ImportValue AZStack:MySecondPrivateSubnet
+        - !ImportValue AZStack:PrivateSubnet1
+        - !ImportValue AZStack:PrivateSubnet2
 
 Outputs:
   DBInstanceEndpoint:

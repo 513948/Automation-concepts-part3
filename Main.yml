@@ -1,4 +1,9 @@
 # Deze main.yml file is de entry point van de CloudFormation stack. (Nog niet aanroepen! werkt nog niet en nog niet af!)
+# | StackNames | Description |
+# | AZStack | Stack that deploys the network resources |
+# | DatabaseStack | Stack that deploys the database resources |
+# | LBStack | Stack that deploys the load balancer resources |
+# | ASGStack | Stack that deploys the auto scaling group resources |
 Description: Main stack that deploys network and database resources
 Parameters:
   MasterUsername:
