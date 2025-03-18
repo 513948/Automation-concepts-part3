@@ -8,7 +8,7 @@ Resources:
       Name: cloudshirt-alb
       Subnets:
         - !ImportValue AZStack:PublicSubnet1
-        - !ImportValue AZStack:publicSubnet2
+        - !ImportValue AZStack:PublicSubnet2
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
       LoadBalancerAttributes:
