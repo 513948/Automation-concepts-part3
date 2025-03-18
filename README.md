@@ -44,6 +44,10 @@ The following components are included in the solution:
 ## Deployment 
 > [!NOTE] 
 > script?
+> [!IMPORTANT] 
+> Ensure when creating the **DatabaseStack** that the masterpassword has
+> more than 8 vars in the string, otherwise the stack will fail.
+
 
 ## Requirements
 The solution is designed to meet the following requirements:
