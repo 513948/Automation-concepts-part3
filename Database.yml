@@ -1,0 +1,69 @@
+Parameters:
+  DBInstanceIdentifier:
+    Type: String
+    Default: "cloudshirt-db-instance"
+    Description: The identifier for the RDS database instance
+
+  DBInstanceClass:
+    Type: String
+    Default: "db.t3.small"
+    Description: The compute and memory capacity of the DB instance
+
+  DBName:
+    Type: String
+    Default: "cloudshirtdb"
+    Description: The name of the database to create when the DB instance is created
+
+  DBUsername:
+    Type: String
+    Description: The username for the database master user
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: The password for the database master user (minimun 8 letters)
+    
+Resources:
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: sqlserver-ex
+  #    DBName: !Ref DBName
+      MasterUsername: !Ref DBUsername
+      LicenseModel: license-included
+      MasterUserPassword: !Ref DBPassword
+      AllocatedStorage: 45 
+      PubliclyAccessible: false 
+      MonitoringInterval: 0
+      VPCSecurityGroups:
+        - Ref: RDSSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for RDS instance"
+      VpcId: !ImportValue AZStack:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 1433
+          ToPort: 1433
+          CidrIp: 0.0.0.0/0
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "DB Subnet Group for RDS"
+      SubnetIds:
+        - !ImportValue AZStack:PrivateSubnet1
+        - !ImportValue AZStack:PrivateSubnet2
+
+Outputs:
+  DBInstanceEndpoint:
+    Description: "The endpoint of the RDS instance"
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", RDSEndpoint ] ] 
+      
