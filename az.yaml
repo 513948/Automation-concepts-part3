@@ -46,7 +46,7 @@ Resources:
         - Key: Name
           Value: VPC
 
-  # Define internet gateway to allow access to the "outside world"
+  # Define internet gateway to allow access to the "outside world" 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:

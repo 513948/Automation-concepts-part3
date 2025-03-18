@@ -1,8 +1,6 @@
 Description: Stack for creating EFS File System
 
 Resources:
-  # EFS File System
-  
   SG:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -36,3 +34,5 @@ Resources:
       SecurityGroups:
         - !GetAtt SG.GroupId
     DependsOn: SG
+  
+Outputs:
