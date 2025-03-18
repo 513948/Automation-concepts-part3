@@ -116,7 +116,7 @@ Resources:
       SubnetId: !Ref PublicSubnet2
 
   # Define two (private) subnets on the /24 domain
-  PrivateSubnet1Subnet:
+  PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: !Ref PrivateSubnet1CIDR
@@ -124,9 +124,9 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: PrivateSubnet1Subnet
+          Value: PrivateSubnet1
 
-  PrivateSubnet2Subnet:
+  PrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: !Ref PrivateSubnet2CIDR
@@ -134,7 +134,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: PrivateSubnet2Subnet
+          Value: PrivateSubnet2
 
 Outputs:
   VPCRef:
@@ -164,14 +164,14 @@ Outputs:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicSubnet2" ] ]
   PrivateSubnet1SubnetRef:
     Description: Reference to my first (private) subnet
-    Value: !Ref PrivateSubnet1Subnet
+    Value: !Ref PrivateSubnet1
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet1Subnet" ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet1" ] ]
   PrivateSubnet2SubnetRef:
     Description: Reference to my second (private) subnet
-    Value: !Ref PrivateSubnet2Subnet
+    Value: !Ref PrivateSubnet2
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet2Subnet" ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet2" ] ]
   AvailabilityZone1Ref:
     Description: Reference to Availability Zone 1
     Value: !Ref AvailabilityZone1
