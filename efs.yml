@@ -1,7 +1,7 @@
 Description: Stack for creating EFS File System
 
 Resources:
-  SG:
+  efsSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: 'Security Group for EC2 to access EFS'
@@ -21,18 +21,33 @@ Resources:
     Type: 'AWS::EFS::MountTarget'
     Properties:
       FileSystemId: !Ref EFSFileSystem
-      SubnetId: !ImportValue Multi-AZ:MyFirstPrivateSubnet
+      SubnetId: !ImportValue AZStack:PrivateSubnet1
       SecurityGroups:
-        - !GetAtt SG.GroupId
-    DependsOn: SG
+        - !Ref efsSecurityGroup
 
   EFSMountTarget2:
     Type: 'AWS::EFS::MountTarget'
     Properties:
       FileSystemId: !Ref EFSFileSystem
-      SubnetId: !ImportValue Multi-AZ:MySecondPrivateSubnet
+      SubnetId: !ImportValue AZStack:PrivateSubnet2
       SecurityGroups:
-        - !GetAtt SG.GroupId
-    DependsOn: SG
+        - !Ref efSecurityGroup.GroupId
   
 Outputs:
+  EFSFileSystemId:
+    Description: 'EFS File System ID'
+    Value: !Ref EFSFileSystem
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSFileSystem" ] ]
+
+  EFSMountTarget1:
+    Description: 'EFS Mount Target 1'
+    Value: !Ref EFSMountTarget1
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSMountTarget1" ] ]
+
+  EFSMountTarget2:
+    Description: 'EFS Mount Target 2'
+    Value: !Ref EFSMountTarget2
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSMountTarget2" ] ]

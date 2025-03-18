@@ -143,41 +143,49 @@ Outputs:
     Value: !Ref VPC
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "VPC" ] ] 
+
   VPCGatewayAttachmentRef:
     Description: Reference to the VPC gateway attachment
     Value: !Ref VPCGatewayAttachment
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "VPCGatewayAttachment" ] ]
+
   PublicRouteTableRef:
     Description: Reference to the VPC route table
     Value: !Ref PublicRouteTable
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicRouteTable" ] ]
+
   PublicSubnet1Ref:
     Description: Reference to my first (public) subnet
     Value: !Ref PublicSubnet1
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicSubnet1" ] ]
+
   PublicSubnet2Ref:
     Description: Reference to my second (public) subnet
     Value: !Ref PublicSubnet2
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicSubnet2" ] ]
+
   PrivateSubnet1SubnetRef:
     Description: Reference to my first (private) subnet
     Value: !Ref PrivateSubnet1
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet1" ] ]
+
   PrivateSubnet2SubnetRef:
     Description: Reference to my second (private) subnet
     Value: !Ref PrivateSubnet2
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet2" ] ]
+
   AvailabilityZone1Ref:
     Description: Reference to Availability Zone 1
     Value: !Ref AvailabilityZone1
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "AvailabilityZone1" ] ]
+      
   AvailabilityZone2Ref:
     Description: Reference to Availability Zone 2
     Value: !Ref AvailabilityZone2
