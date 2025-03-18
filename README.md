@@ -1,11 +1,6 @@
 # Automation Concepts - Part 1
-
-## Authors
-Students: **Geordi** and **Jent**
-
----
-
 ## Overview
+**Students**: Geordi and Jent
 
 This project demonstrates the deployment of a highly available and scalable .NET solution, **CloudShirt**, using AWS CloudFormation. The solution is designed to meet specific requirements for high availability, scalability, monitoring, and logging. The infrastructure is provisioned using multiple AWS services, including VPC, RDS, Auto Scaling Groups, Elastic Load Balancers, and Elastic File System (EFS).
 
