@@ -36,144 +36,142 @@ Parameters:
     Default: us-east-1b
 
 Resources:
-  # We need a VPC.
-  MyFirstVPC:
+  VPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: !Ref VPCCIDR
       EnableDnsHostnames: true
-      Tags: # Good practice is to add tags!
+      Tags: 
         - Key: Name
-          Value: MyFirstVPC
+          Value: VPC
 
   # Define internet gateway to allow access to the "outside world"
-  MyFirstInternetGateway:
+  InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: MyFirstInternetGateway
+          Value: InternetGateway
 
   # Connect internet gateway to VPC
-  MyFirstVPCGatewayAttachment:
+  VPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      InternetGatewayId: !Ref MyFirstInternetGateway
-      VpcId: !Ref MyFirstVPC
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
 
   # Define two (public) subnets on the /24 domain that automatically
   # assigns all instances a public ip on launch
-  MyFirstSubnet:
+  PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: !Ref PublicSubnet1CIDR
       AvailabilityZone: !Ref AvailabilityZone1
       MapPublicIpOnLaunch: true
-      VpcId: !Ref MyFirstVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: MyFirstSubnet
+          Value: PublicSubnet1
 
-  MySecondSubnet:
+  PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: !Ref PublicSubnet2CIDR
       AvailabilityZone: !Ref AvailabilityZone2
       MapPublicIpOnLaunch: true
-      VpcId: !Ref MyFirstVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: MySecondSubnet
+          Value: PublicSubnet2
 
   # Add a routing table (and route) to the VPC to route all traffic
   # via the internet gateway
-  MyFirstRouteTable:
+  PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref MyFirstVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: MyFirstRouteTable
+          Value: PublicRouteTable
 
   # Default route to the internet gateway
-  MyFirstDefaultRoute:
+  PublicDefaultRoute:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref MyFirstInternetGateway
-      RouteTableId: !Ref MyFirstRouteTable
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
 
   # Associate routing table to subnets
-  MyFirstSubnetRouteTableAssociation:
+  PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref MyFirstRouteTable
-      SubnetId: !Ref MyFirstSubnet
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
 
-  MySecondSubnetRouteTableAssociation:
+  PublicSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref MyFirstRouteTable
-      SubnetId: !Ref MySecondSubnet
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
 
   # Define two (private) subnets on the /24 domain
-  MyFirstPrivateSubnet:
+  PrivateSubnet1Subnet:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: !Ref PrivateSubnet1CIDR
       AvailabilityZone: !Ref AvailabilityZone1
-      VpcId: !Ref MyFirstVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: MyFirstPrivateSubnet
+          Value: PrivateSubnet1Subnet
 
-  MySecondPrivateSubnet:
+  PrivateSubnet2Subnet:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: !Ref PrivateSubnet2CIDR
       AvailabilityZone: !Ref AvailabilityZone2
-      VpcId: !Ref MyFirstVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: MySecondPrivateSubnet
+          Value: PrivateSubnet2Subnet
 
-# Define outputs so values can be imported in another template
 Outputs:
   VPCRef:
     Description: Reference to the VPC
-    Value: !Ref MyFirstVPC
+    Value: !Ref VPC
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstVPC" ] ] # Fancy way of making the exported variable called "MyBase:VPC"
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "VPC" ] ] 
   VPCGatewayAttachmentRef:
     Description: Reference to the VPC gateway attachment
-    Value: !Ref MyFirstVPCGatewayAttachment
+    Value: !Ref VPCGatewayAttachment
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstVPCGatewayAttachment" ] ]
-  MyFirstRouteTableRef:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "VPCGatewayAttachment" ] ]
+  PublicRouteTableRef:
     Description: Reference to the VPC route table
-    Value: !Ref MyFirstRouteTable
+    Value: !Ref PublicRouteTable
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstRouteTable" ] ]
-  MyFirstSubnetRef:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicRouteTable" ] ]
+  PublicSubnet1Ref:
     Description: Reference to my first (public) subnet
-    Value: !Ref MyFirstSubnet
+    Value: !Ref PublicSubnet1
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstSubnet" ] ]
-  MySecondSubnetRef:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicSubnet1" ] ]
+  PublicSubnet2Ref:
     Description: Reference to my second (public) subnet
-    Value: !Ref MySecondSubnet
+    Value: !Ref PublicSubnet2
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "MySecondSubnet" ] ]
-  MyFirstPrivateSubnetRef:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicSubnet2" ] ]
+  PrivateSubnet1SubnetRef:
     Description: Reference to my first (private) subnet
-    Value: !Ref MyFirstPrivateSubnet
+    Value: !Ref PrivateSubnet1Subnet
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "MyFirstPrivateSubnet" ] ]
-  MySecondPrivateSubnetRef:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet1Subnet" ] ]
+  PrivateSubnet2SubnetRef:
     Description: Reference to my second (private) subnet
-    Value: !Ref MySecondPrivateSubnet
+    Value: !Ref PrivateSubnet2Subnet
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "MySecondPrivateSubnet" ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet2Subnet" ] ]
   AvailabilityZone1Ref:
     Description: Reference to Availability Zone 1
     Value: !Ref AvailabilityZone1
