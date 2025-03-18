@@ -1,3 +1,5 @@
+Description: Stack for creating EFS File System
+
 Resources:
   # EFS File System
   

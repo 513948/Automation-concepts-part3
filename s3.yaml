@@ -1,0 +1,24 @@
+Description: Stack for creating loadbalancer
+
+Resources:
+  s3Bucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: Private | PublicRead | PublicReadWrite | AuthenticatedRead | LogDeliveryWrite | BucketOwnerRead | BucketOwnerFullControl
+      BucketName: 
+      CorsConfiguration: 
+      LifecycleConfiguration: 
+      NotificationConfiguration: 
+      VersioningConfiguration: 
+      WebsiteConfiguration: 
+      Tags:
+        - Key: key
+          Value: value
+  
+  s3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: 
+      PolicyDocument: 
+
+Outputs:

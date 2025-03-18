@@ -1,3 +1,5 @@
+Description: Stack for creating RDS Database
+
 Parameters:
   DBInstanceIdentifier:
     Type: String
