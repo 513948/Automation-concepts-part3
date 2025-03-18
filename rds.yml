@@ -69,4 +69,14 @@ Outputs:
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", RDSEndpoint ] ] 
       
-      
+  DBUsernameOutput:
+    Description: "The username for the RDS database master user"
+    Value: !Ref DBUsername
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "DBUsername" ] ]
+
+  DBPasswordOutput:
+    Description: "The password for the RDS database master user"
+    Value: !Ref DBPassword
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "DBPassword" ] ]

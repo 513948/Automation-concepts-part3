@@ -31,42 +31,46 @@ Resources:
         KeyName: vockey
         UserData: 
           Fn::Base64:
-          - |
-            #!/bin/bash
+            Fn::Sub:
+              - |
+                #!/bin/bash
 
-            # CloudShirt Application Setup Script
-            # This script installs and configures everything needed to run the CloudShirt application
-            # with an external SQL Server RDS database
+                # CloudShirt Application Setup Script
+                # This script installs and configures everything needed to run the CloudShirt application
+                # with an external SQL Server RDS database
 
-            # Install dotnet-sdk-6.0
-            sudo yum update -y
+                # Install dotnet-sdk-6.0
+                sudo yum update -y
 
-            sudo yum install -y dotnet-sdk-6.0 git
-            export DOTNET_CLI_HOME=/root/.dotnet
+                sudo yum install -y dotnet-sdk-6.0 git
+                export DOTNET_CLI_HOME=/root/.dotnet
 
-            # Install git
-            sudo yum install git -y
-            sudo git clone https://github.com/looking4ward/CloudShirt.git
+                # Install git
+                sudo yum install git -y
+                sudo git clone https://github.com/looking4ward/CloudShirt.git
 
-            # Update appsettings.json using defined variables
-            sudo sed -i "s/Server.*CatalogDb;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/" CloudShirt/src/Web/appsettings.json
-            sudo sed -i "s/Server.*Identity;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.Identity;/" CloudShirt/src/Web/appsettings.json
-            sudo sed -i "s/Server.*CatalogDb;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/" CloudShirt/src/PublicApi/appsettings.json
-            sudo sed -i "s/Server.*Identity;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.Identity;/" CloudShirt/src/PublicApi/appsettings.json
+                # Update appsettings.json using defined variables
+                sudo sed -i "s/Server.*CatalogDb;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/" CloudShirt/src/Web/appsettings.json
+                sudo sed -i "s/Server.*Identity;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.Identity;/" CloudShirt/src/Web/appsettings.json
+                sudo sed -i "s/Server.*CatalogDb;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/" CloudShirt/src/PublicApi/appsettings.json
+                sudo sed -i "s/Server.*Identity;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.Identity;/" CloudShirt/src/PublicApi/appsettings.json
 
-            # run the application in folder Web port 80
-            cd CloudShirt/src/Web
-            sudo dotnet build
-            sudo dotnet run --urls "http://0.0.0.0:80/" > app_logs.txt 2>&1 &
-            cd /
+                # run the application in folder Web port 80
+                cd CloudShirt/src/Web
+                sudo dotnet build
+                sudo dotnet run --urls "http://0.0.0.0:80/" > app_logs.txt 2>&1 &
+                cd /
 
-            # Run the application in folder PublicApi port 5009
-            cd CloudShirt/src/PublicApi
-            sudo dotnet build
-            sudo dotnet run --urls "http://0.0.0.0:5009/" > app_logs.txt 2>&1 &
-          - RDS_ENDPOINT: !ImportValue DatabaseStack:DBEndpoint
-          - RDS_USERNAME: !ImportValue DatabaseStack:DBUsername
-          - RDS_PASSWORD: !ImportValue DatabaseStack:DBPassword
+                # Run the application in folder PublicApi port 5009
+                cd CloudShirt/src/PublicApi
+                sudo dotnet build
+                sudo dotnet run --urls "http://0.0.0.0:5009/" > app_logs.txt 2>&1 &
+              - RDS_ENDPOINT: 
+                  Fn::ImportValue: DatabaseStack:RDSEndpoint
+                RDS_USERNAME:
+                  Fn::ImportValue: DatabaseStack:DBPassword
+                RDS_PASSWORD:
+                  Fn::ImportValue: DatabaseStack:DBPassword
 
         SecurityGroupIds:
           - !Ref ASGSecurityGroup
