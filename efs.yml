@@ -1,53 +1,52 @@
-Description: Stack for creating EFS File System
-
+Description: 'EFS for the CloudShirt application'
 Resources:
-  efsSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: 'Security Group for EC2 to access EFS'
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '2049'
-          ToPort: '2049'
-          CidrIp: '0.0.0.0/0'  # Allow all inbound connections on port 2049 (NFS)
+        GroupDescription: Allow acces to the mounttargets from subnets
+        VpcId: !ImportValue AZStack:VPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: '2049'
+            ToPort: '2049'
+            CidrIp: 0.0.0.0/0
 
   EFSFileSystem:
-    Type: 'AWS::EFS::FileSystem'
+    Type: AWS::EFS::FileSystem
     Properties:
-      PerformanceMode: 'generalPurpose'
-      Encrypted: true 
+      Encrypted: "true"
 
-  EFSMountTarget1:
-    Type: 'AWS::EFS::MountTarget'
+  MountTarget1:
+    Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref EFSFileSystem
-      SubnetId: !ImportValue AZStack:PrivateSubnet1
+      SubnetId: !ImportValue AZStack:PublicSubnet1
       SecurityGroups:
-        - !Ref efsSecurityGroup
+      - Ref: EFSSecurityGroup
 
-  EFSMountTarget2:
-    Type: 'AWS::EFS::MountTarget'
+  MountTarget2:
+    Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref EFSFileSystem
-      SubnetId: !ImportValue AZStack:PrivateSubnet2
+      SubnetId: !ImportValue AZStack:PublicSubnet2
       SecurityGroups:
-        - !Ref efSecurityGroup.GroupId
-  
+      - Ref: EFSSecurityGroup
+
 Outputs:
-  EFSFileSystemId:
-    Description: 'EFS File System ID'
+  EFSRef:
+    Description: Reference to the EFS
     Value: !Ref EFSFileSystem
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSFileSystem" ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", EFSFileSystem ] ]
 
-  EFSMountTarget1:
-    Description: 'EFS Mount Target 1'
-    Value: !Ref EFSMountTarget1
+  Az1MountTargetRef:
+    Description: Mount target ID
+    Value: !Ref MountTarget1
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSMountTarget1" ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MountTarget2 ] ]
 
-  EFSMountTarget2:
-    Description: 'EFS Mount Target 2'
-    Value: !Ref EFSMountTarget2
+  Az2MountTargetRef:
+    Description: Mount target ID
+    Value: !Ref MountTarget2
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSMountTarget2" ] ]
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MountTarget1 ] ]

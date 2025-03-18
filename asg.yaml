@@ -12,8 +12,8 @@ Resources:
           ToPort: '80'
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: '5009'
-          ToPort: '5009'
+          FromPort: '5099'
+          ToPort: '5099'
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: '22'
@@ -29,6 +29,11 @@ Resources:
         InstanceType: t2.micro
         ImageId: ami-08b5b3a93ed654d19
         KeyName: vockey
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+            - Key: Name
+              Value: !Sub "CloudShirtApp"
         UserData: 
           Fn::Base64:
             Fn::Sub:
@@ -37,10 +42,17 @@ Resources:
 
                 # CloudShirt Application Setup Script
                 # This script installs and configures everything needed to run the CloudShirt application
-                # with an external SQL Server RDS database
+                # with an external SQL Server, RDS database and EFS file system
 
                 # Install dotnet-sdk-6.0
                 sudo yum update -y
+
+                yum -y install nfs-utils
+                mkdir /efs
+                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0b274588d48bfd579.efs.us-east-1.amazonaws.com:/ /efs
+                cd /efs
+                sudo chmod go+rw .
+                touch instance-mounted.txt
 
                 sudo yum install -y dotnet-sdk-6.0 git
                 export DOTNET_CLI_HOME=/root/.dotnet
@@ -55,16 +67,17 @@ Resources:
                 sudo sed -i "s/Server.*CatalogDb;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/" CloudShirt/src/PublicApi/appsettings.json
                 sudo sed -i "s/Server.*Identity;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_PASSWORD};Initial Catalog=Microsoft.eShopOnWeb.Identity;/" CloudShirt/src/PublicApi/appsettings.json
 
+                INSTANCE_PUBLIC_IP=$(wget -qO- http://checkip.amazonaws.com)
                 # run the application in folder Web port 80
                 cd CloudShirt/src/Web
                 sudo dotnet build
-                sudo dotnet run --urls "http://0.0.0.0:80/" > app_logs.txt 2>&1 &
+                sudo bash nohup dotnet run --urls "http://0.0.0.0:80/" >> $INSTANCE_PUBLIC_IP.web.log 2>&1 &
                 cd /
 
                 # Run the application in folder PublicApi port 5009
                 cd CloudShirt/src/PublicApi
                 sudo dotnet build
-                sudo dotnet run --urls "http://0.0.0.0:5009/" > app_logs.txt 2>&1 &
+                sudo nohup dotnet run --urls "http://0.0.0.0:5099/" >> $INSTANCE_PUBLIC_IP.api.log 2>&1 &
               - RDS_ENDPOINT: 
                   Fn::ImportValue: DatabaseStack:RDSEndpoint
                 RDS_USERNAME:

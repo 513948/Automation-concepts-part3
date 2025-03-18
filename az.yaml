@@ -168,13 +168,13 @@ Outputs:
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PublicSubnet2" ] ]
 
-  PrivateSubnet1SubnetRef:
+  PrivateSubnet1Ref:
     Description: Reference to my first (private) subnet
     Value: !Ref PrivateSubnet1
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "PrivateSubnet1" ] ]
 
-  PrivateSubnet2SubnetRef:
+  PrivateSubnet2Ref:
     Description: Reference to my second (private) subnet
     Value: !Ref PrivateSubnet2
     Export:

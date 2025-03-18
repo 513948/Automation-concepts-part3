@@ -14,10 +14,10 @@ The following CloudFormation stacks are used to deploy the environment:
 | **AZStack**       | Deploys the network resources (VPC, subnets, etc.). |
 | **DatabaseStack** | Deploys the database resources (Amazon RDS).        |
 | **LBStack**       | Deploys the load balancer resources.                |
-| **ASGStack**      | Deploys the auto scaling group resources.           |
 | **EFSStack**      | Deploys the Elastic File System (EFS) for storing web server logs. |
-| **S3Stack**       | Deploys the S3 bucket for storing exported RDS data. |
+| **ASGStack**      | Deploys the auto scaling group resources.           |
 | **ELKStack**      | Deploys the Elastic Stack (ELK) for monitoring and logging. |
+| **S3Stack**       | Deploys the S3 bucket for storing exported RDS data. |
 
 > [!IMPORTANT] 
 > Ensure these stack names are used when launching the environment,
