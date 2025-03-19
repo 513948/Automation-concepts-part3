@@ -52,7 +52,7 @@ Resources:
                 mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0b274588d48bfd579.efs.us-east-1.amazonaws.com:/ /efs
                 cd /efs
                 sudo chmod go+rw .
-                touch instance-mounted.txt
+                cd /
 
                 sudo yum install -y dotnet-sdk-6.0 git
                 export DOTNET_CLI_HOME=/root/.dotnet
@@ -71,17 +71,17 @@ Resources:
                 # run the application in folder Web port 80
                 cd CloudShirt/src/Web
                 sudo dotnet build
-                sudo bash nohup dotnet run --urls "http://0.0.0.0:80/" >> $INSTANCE_PUBLIC_IP.web.log 2>&1 &
+                sudo dotnet run --urls "http://0.0.0.0:80/" >> /efs/$INSTANCE_PUBLIC_IP.web.log 2>&1 &
                 cd /
 
                 # Run the application in folder PublicApi port 5009
                 cd CloudShirt/src/PublicApi
                 sudo dotnet build
-                sudo nohup dotnet run --urls "http://0.0.0.0:5099/" >> $INSTANCE_PUBLIC_IP.api.log 2>&1 &
+                sudo dotnet run --urls "http://0.0.0.0:5099/" >> /efs/$INSTANCE_PUBLIC_IP.api.log 2>&1 &
               - RDS_ENDPOINT: 
                   Fn::ImportValue: DatabaseStack:RDSEndpoint
                 RDS_USERNAME:
-                  Fn::ImportValue: DatabaseStack:DBPassword
+                  Fn::ImportValue: DatabaseStack:DBUsername
                 RDS_PASSWORD:
                   Fn::ImportValue: DatabaseStack:DBPassword
 
