@@ -41,7 +41,7 @@ Outputs:
   
   EFSdns:
     Description: "DNS Name of the EFS"
-    Value: !GetAtt EFSFileSystem.DNSName
+    Value: !GetAtt EFSFileSystem.FileSystemId
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSdns" ] ]
 
