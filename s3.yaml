@@ -4,16 +4,14 @@ Resources:
   s3Bucket:
     Type: AWS::S3::Bucket
     Properties: 
-      AccessControl: Private | PublicRead | PublicReadWrite | AuthenticatedRead | LogDeliveryWrite | BucketOwnerRead | BucketOwnerFullControl
-      BucketName: 
-      CorsConfiguration: 
-      LifecycleConfiguration: 
-      NotificationConfiguration: 
+      AccessControl: Private
+      BucketName: RDS-export-bucket
       VersioningConfiguration: 
+        Status: Enabled
       WebsiteConfiguration: 
       Tags:
-        - Key: key
-          Value: value
+        - Key: Purpose
+          Value: RDSExport
   
   s3BucketPolicy:
     Type: AWS::S3::BucketPolicy

@@ -48,9 +48,9 @@ Resources:
                 sudo yum update -y
 
                 yum -y install nfs-utils
-                mkdir /efs
-                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS_DNS}.efs.${EFS_REGION}:/ /efs
-                cd /efs
+                mkdir /EFS
+                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport CHANGEME:/ /efs # example EFS DNS
+                cd /EFS
                 sudo chmod go+rw .
                 cd /
 
@@ -71,13 +71,13 @@ Resources:
                 # run the application in folder Web port 80
                 cd CloudShirt/src/Web
                 sudo dotnet build
-                sudo dotnet run --urls "http://0.0.0.0:80/" >> /efs/$INSTANCE_PUBLIC_IP.web.log 2>&1 &
+                sudo nohup dotnet run --urls "http://0.0.0.0:80/" >> /EFS/$INSTANCE_PUBLIC_IP.web.log 2>&1 &
                 cd /
 
                 # Run the application in folder PublicApi port 5009
                 cd CloudShirt/src/PublicApi
                 sudo dotnet build
-                sudo dotnet run --urls "http://0.0.0.0:5099/"
+                sudo nohup dotnet run --urls "http://0.0.0.0:5099/"
               - RDS_ENDPOINT: 
                   Fn::ImportValue: DatabaseStack:RDSEndpoint
                 RDS_USERNAME:
@@ -86,8 +86,6 @@ Resources:
                   Fn::ImportValue: DatabaseStack:DBPassword
                 EFS_DNS:
                   Fn::ImportValue: EFSStack:EFSdns
-                EFS_REGION:
-                  Fn::ImportValue: EFSStack:AWSRegion
                 
         SecurityGroupIds:
           - !Ref ASGSecurityGroup
