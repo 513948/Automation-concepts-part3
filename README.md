@@ -50,7 +50,7 @@ The solution is designed to meet the following requirements:
 
 - [x] **REQ-01**: The CloudShirt .NET solution is highly available across multiple AZs using a single URL.
 - [x] **REQ-02**: The CloudShirt .NET solution can scale out during spike traffic hours between 6 PM and 8 PM Eastern Time.
-- [ ] **REQ-03**: Elastic File System (EFS) is used to store public webserver log files on a daily basis.
+- [x] **REQ-03**: Elastic File System (EFS) is used to store public webserver log files on a daily basis.
 - [x] **REQ-04**: The data tier of the CloudShirt .NET solution is based on Amazon RDS.
 - [ ] **REQ-05**: Elastic (ELK) Stack v8.x is provisioned as a monitoring solution.
 - [ ] **REQ-06**: Logs are made visible on the Elastic Stack using FileBeat.
