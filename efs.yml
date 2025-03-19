@@ -41,9 +41,15 @@ Outputs:
   
   EFSdns:
     Description: "DNS Name of the EFS"
-    Value: !GetAtt EFSFileSystem.FileSystemId
+    Value: !GetAtt EFSFileSystem.File
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSdns" ] ]
+
+  AWSRegion:
+    Description: "AWS Region"
+    Value: !Ref 'AWS::Region'
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "Region" ] ]
 
   Az1MountTargetRef:
     Description: Mount target ID

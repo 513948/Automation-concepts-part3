@@ -49,7 +49,7 @@ Resources:
 
                 yum -y install nfs-utils
                 mkdir /efs
-                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS_DNS}:/ /efs
+                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS_DNS}.efs.${EFS_REGION}:/ /efs
                 cd /efs
                 sudo chmod go+rw .
                 cd /
@@ -86,8 +86,9 @@ Resources:
                   Fn::ImportValue: DatabaseStack:DBPassword
                 EFS_DNS:
                   Fn::ImportValue: EFSStack:EFSdns
+                EFS_REGION:
+                  Fn::ImportValue: EFSStack:AWSRegion
                 
-
         SecurityGroupIds:
           - !Ref ASGSecurityGroup
   
