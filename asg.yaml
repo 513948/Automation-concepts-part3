@@ -77,7 +77,7 @@ Resources:
                 # Run the application in folder PublicApi port 5009
                 cd CloudShirt/src/PublicApi
                 sudo dotnet build
-                sudo dotnet run --urls "http://0.0.0.0:5099/" >> /efs/$INSTANCE_PUBLIC_IP.api.log 2>&1 &
+                sudo dotnet run --urls "http://0.0.0.0:5099/"
               - RDS_ENDPOINT: 
                   Fn::ImportValue: DatabaseStack:RDSEndpoint
                 RDS_USERNAME:
