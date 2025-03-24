@@ -1,4 +1,4 @@
-Description: Template for auto scaling group - Ricardo Falchi and Ruud Schutten
+Description: Template for auto scaling group
 
 Resources:
   ASGSecurityGroup:
@@ -49,7 +49,7 @@ Resources:
 
                 yum -y install nfs-utils
                 mkdir /EFS
-                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport CHANGEME:/ /efs # example EFS DNS
+                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS_DNS}.efs.us-east-1.amazonaws.com:/ /EFS # example EFS DNS
                 cd /EFS
                 sudo chmod go+rw .
                 cd /

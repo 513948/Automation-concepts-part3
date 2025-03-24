@@ -39,11 +39,11 @@ Outputs:
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", EFSFileSystem ] ]
   
-  # EFSdns:
-  #   Description: "DNS Name of the EFS"
-  #   Value: !GetAtt EFSFileSystem.FileSystemId
-  #   Export:
-  #     Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSdns" ] ]
+  EFSdns:
+    Description: "DNS Name of the EFS"
+    Value: !GetAtt EFSFileSystem.FileSystemId
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSdns" ] ]
 
   Az1MountTargetRef:
     Description: Mount target ID
