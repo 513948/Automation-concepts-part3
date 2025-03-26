@@ -71,13 +71,13 @@ Resources:
                 # run the application in folder Web port 80
                 cd CloudShirt/src/Web
                 sudo dotnet build
-                sudo nohup dotnet run --urls "http://0.0.0.0:80/" >> /EFS/$INSTANCE_PUBLIC_IP.web.log 2>&1 &
+                sudo dotnet run --urls "http://0.0.0.0:80/" >> /EFS/$INSTANCE_PUBLIC_IP.web.log 2>&1 &
                 cd /
 
                 # Run the application in folder PublicApi port 5009
                 cd CloudShirt/src/PublicApi
                 sudo dotnet build
-                sudo nohup dotnet run --urls "http://0.0.0.0:5099/"
+                sudo dotnet run --urls "http://0.0.0.0:5099/"
               - RDS_ENDPOINT: 
                   Fn::ImportValue: DatabaseStack:RDSEndpoint
                 RDS_USERNAME:
