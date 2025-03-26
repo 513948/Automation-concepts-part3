@@ -38,7 +38,9 @@ The following components are included in the solution:
 
 ## Deployment 
 > [!NOTE] 
-> script?
+> The Setup.sh script can be used to easily deploy the envirement through AWS CLI, for this AWS CLI needs to be installed and 
+> a token needs to be configured in the /user/"username"/.aws/credentials file. 
+> At the top of the script are two variables for the database username and password.
 
 > [!IMPORTANT] 
 > Ensure when creating the **DatabaseStack** that the masterpassword has
