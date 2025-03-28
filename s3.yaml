@@ -1,7 +1,7 @@
-Description: Stack for creating loadbalancer
+Description: Stack for creating s3 bucket
 
 Resources:
-  s3Bucket:
+  S3Bucket:
     Type: AWS::S3::Bucket
     Properties: 
       AccessControl: Private
@@ -12,11 +12,38 @@ Resources:
       Tags:
         - Key: Purpose
           Value: RDSExport
+
+  S3SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for S3 bucket"
+      VpcId: !ImportValue AZStack:VPC
+      SecurityGroupIngress:
+        - !ImportValue AZStack:PrivateSubnet1
+        - !ImportValue AZStack:PrivateSubnet2
+        - !ImportValue AZStack:PublicSubnet1
+        - !ImportValue AZStack:PublicSubnet2
+
   
-  s3BucketPolicy:
+  S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: 
       PolicyDocument: 
-
+  
 Outputs:
+  s3BucketArn:
+    Description: ARN of the S3 bucket
+    Value: !GetAtt s3Bucket.Arn
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::S3Stack", "S3BucketArn" ] ]
+  s3BucketDomainName:
+    Description: Domain name of the S3 bucket
+    Value: !GetAtt s3Bucket.DomainName
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::S3Stack", "S3BucketDomainName" ] ]
+  s3BucketWebsiteURL:
+    Description: Website URL of the S3 bucket
+    Value: !GetAtt s3Bucket.WebsiteURL
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::S3Stack", "S3BucketWebsiteURL" ] ]
