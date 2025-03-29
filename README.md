@@ -45,7 +45,7 @@ At the top of the script are two variables for the database username and passwor
 > more than 8 vars in the string, otherwise the stack will fail.
 
 ### Configuration Elastic search
-![Config](image.png)
+![Image description](https://github.com/513948/Automation-concepts-part1/blob/main/images/2025-03-29%2014_20_12-Settings.png)
 
 ## Requirements
 The solution is designed to meet the following requirements:
