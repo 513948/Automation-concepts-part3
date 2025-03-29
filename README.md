@@ -33,19 +33,19 @@ The following components are included in the solution:
 - **Database**: Amazon RDS is used for the data tier. 
 - **Load Balancer**: An Application Load Balancer (ALB) distributes traffic across instances.
 - **Elastic File System (EFS)**: Stores web server log files.
-- **Lambda Function**: Moves log files to EFS.
 - **Elastic Stack (ELK)**: Logs are made visible using FileBeat for monitoring and analysis.
+- **S3 bucket (S3)**: RDS is getting exported by a script in the bucket.
 
 ## Deployment 
-> [!NOTE] 
-> The Setup.sh script can be used to easily deploy the envirement through AWS CLI, for this AWS CLI needs to be installed and 
-> a token needs to be configured in the /user/"username"/.aws/credentials file. 
-> At the top of the script are two variables for the database username and password.
-
+The Setup.sh script can be used to easily deploy the envirement through AWS CLI, for this AWS CLI needs to be installed and 
+a token needs to be configured in the /user/"username"/.aws/credentials file. 
+At the top of the script are two variables for the database username and password.
 > [!IMPORTANT] 
 > Ensure when creating the **DatabaseStack** that the masterpassword has
 > more than 8 vars in the string, otherwise the stack will fail.
 
+### Configuration Elastic search
+![alt text](<2025-03-29 14_20_12-Settings.png>)
 
 ## Requirements
 The solution is designed to meet the following requirements:
@@ -54,6 +54,6 @@ The solution is designed to meet the following requirements:
 - [x] **REQ-02**: The CloudShirt .NET solution can scale out during spike traffic hours between 6 PM and 8 PM Eastern Time.
 - [x] **REQ-03**: Elastic File System (EFS) is used to store public webserver log files on a daily basis.
 - [x] **REQ-04**: The data tier of the CloudShirt .NET solution is based on Amazon RDS.
-- [ ] **REQ-05**: Elastic (ELK) Stack v8.x is provisioned as a monitoring solution.
-- [ ] **REQ-06**: Logs are made visible on the Elastic Stack using FileBeat.
+- [x] **REQ-05**: Elastic (ELK) Stack v8.x is provisioned as a monitoring solution.
+- [x] **REQ-06**: Logs are made visible on the Elastic Stack using FileBeat.
 - [ ] **REQ-07**: RDS exports the order table to an S3 bucket using an AWS CLI script and the `bcp` utility, enabling external Athena partners to analyze it.
