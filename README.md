@@ -45,7 +45,19 @@ At the top of the script are two variables for the database username and passwor
 > more than 8 vars in the string, otherwise the stack will fail.
 
 ### Configuration Elastic search
-![Image description](https://github.com/513948/Automation-concepts-part1/blob/main/images/2025-03-29%2014_20_12-Settings.png)
+When the **ELKStack** is deployed you have to wait approx. 5 min when the ELK-instance is fully configured and the Elastisch search, filebeat and kibana
+services are up. 
+
+After the 5 min you can connect to the elk-instance by typing in 'http://{PUBLIC_IP}:5601' in the web-browser, after that follow the steps as shown in the images
+to add the cloudshirt data-view to monitor it.
+
+![stack_management](https://github.com/513948/Automation-concepts-part1/blob/main/images/stack_management.png)
+
+![data_views](https://github.com/513948/Automation-concepts-part1/blob/main/images/data_views.png)
+
+![create_data_view](https://github.com/513948/Automation-concepts-part1/blob/main/images/create_data_view.png)
+
+![overview](https://github.com/513948/Automation-concepts-part1/blob/main/images/overview.png)
 
 ## Requirements
 The solution is designed to meet the following requirements:
