@@ -2,6 +2,7 @@
 
 DB_USERNAME="TestTest"
 DB_PASSWORD="TestTest"
+# The AMI's used are based on US-east-1
 REGION="us-east-1"
 
 # Deploy Stack 1: AZStack
@@ -43,5 +44,11 @@ echo "Creating stack: ELKStack"
 aws cloudformation create-stack --stack-name "ELKStack" --template-body file://elk.yaml --region "$REGION"
 aws cloudformation wait stack-create-complete --stack-name "ELKStack" --region "$REGION"
 echo "ELKStack deployment is complete!"
+
+# Deploy Stack 7: S3 export stack
+echo "Creating stack: EXPStack"
+aws cloudformation create-stack --stack-name "EXPStack" --template-body file://exp.yaml --region "$REGION" --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation wait stack-create-complete --stack-name "EXPStack" --region "$REGION"
+echo "EXPStack deployment is complete!"
 
 echo "All stacks have been deployed!"
