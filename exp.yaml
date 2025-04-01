@@ -1,9 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'CloudShirt - Database Export to S3'
 
-# IMPORTANT NOTICE
-# Not finnished, nearly works completely, only part is trouble with DBName 
-
 # TODO
 # Put dB variables as references to DB stack
 
