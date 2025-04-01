@@ -1,26 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'CloudShirt - Database Export to S3'
 
-# TODO
-# Put dB variables as references to DB stack
-
 Parameters:
   BucketName:
     Description: "S3 bucket name for database exports"
     Type: String
     Default: "cloudshirt-db-exports"
     
-  DBUsername:
-    Description: "Database Username"
-    Type: String
-    Default: "TestTest"
-    
-  DBPassword:
-    Description: "Database Password"
-    Type: String
-    NoEcho: true
-    Default: "TestTest"
-
 Resources:
   # S3 Bucket for Database Exports
   S3Bucket:
@@ -71,50 +57,58 @@ Resources:
         - Key: Name
           Value: CloudShirt-DB-Export
       UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          
-          # Install tools
-          sudo yum update -y
-          sudo yum install -y unixODBC unixODBC-devel awscli jq
-          
-          # SQL tools install
-          sudo curl https://packages.microsoft.com/config/rhel/7/prod.repo -o /etc/yum.repos.d/mssql-release.repo
-          sudo ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
-          
-          export PATH="$PATH:/opt/mssql-tools/bin"
-          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-          
-          # Make script
-          cat > /home/ec2-user/export-orders.sh << 'EOF'
-          #!/bin/bash
-          
-          # Database info
-          DB_SERVER="cloudshirt-db-instance.c1necaf3jznq.us-east-1.rds.amazonaws.com,1433"
-          DB_USER="${DBUsername}"
-          DB_PASSWORD="${DBPassword}"
-          DB_NAME="Microsoft.eShopOnWeb.CatalogDb"
-          S3_BUCKET="${BucketName}"
-          
-          EXPORT_DIR="/home/ec2-user/db-exports"
-          DATE=$(date +%Y%m%d)
-          
-          # setup directory
-          mkdir -p $EXPORT_DIR
-          
-          # Take Order table
-          /opt/mssql-tools/bin/bcp "SELECT * FROM dbo.Orders" queryout "$EXPORT_DIR/orders_$DATE.csv" -c -t, -S "$DB_SERVER" -U "$DB_USER" -P "$DB_PASSWORD" -d "$DB_NAME"
-          
-          # Upload to S3
-          aws s3 cp "$EXPORT_DIR/orders_$DATE.csv" "s3://$S3_BUCKET/orders_$DATE.csv"
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
 
-          EOF
+              # Install tools
+              sudo yum update -y
+              sudo yum install -y unixODBC unixODBC-devel awscli jq
+
+              # SQL tools install
+              sudo curl https://packages.microsoft.com/config/rhel/7/prod.repo -o /etc/yum.repos.d/mssql-release.repo
+              sudo ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
+
+              export PATH="$PATH:/opt/mssql-tools/bin"
+              echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+
+              # Make script
+              cat > /home/ec2-user/export-orders.sh << 'EOF'
+              #!/bin/bash
+
+              # Database info
+              DB_SERVER="${RDS_ENDPOINT},1433"
+              DB_USER="${RDS_USERNAME}"
+              DB_PASSWORD="${RDS_PASSWORD}"
+              DB_NAME="Microsoft.eShopOnWeb.CatalogDb" # cloudshirtdb
+              S3_BUCKET="${BucketName}"
+
+              EXPORT_DIR="/home/ec2-user/db-exports"
+              DATE=$(date +%Y%m%d)
+
+              # setup directory
+              mkdir -p $EXPORT_DIR
+
+              # Take Order table
+              /opt/mssql-tools/bin/bcp "SELECT * FROM dbo.Orders" queryout "$EXPORT_DIR/orders_$DATE.csv" -c -t, -S "$DB_SERVER" -U "$DB_USER" -P "$DB_PASSWORD" -d "$DB_NAME"
           
-          chmod +x /home/ec2-user/export-orders.sh
-          chown ec2-user:ec2-user /home/ec2-user/export-orders.sh
+              # Upload to S3
+              aws s3 cp "$EXPORT_DIR/orders_$DATE.csv" "s3://$S3_BUCKET/orders_$DATE.csv"
+
+              EOF
           
-          # Set Script on a Timer
-          echo "0 2 * * * ec2-user /home/ec2-user/export-orders.sh > /home/ec2-user/export-log.txt 2>&1" >> /etc/crontab
-          
-          # Start first run
-          su - ec2-user -c "/home/ec2-user/export-orders.sh"
+              chmod +x /home/ec2-user/export-orders.sh
+              chown ec2-user:ec2-user /home/ec2-user/export-orders.sh
+
+              # Set Script on a Timer
+              echo "0 2 * * * ec2-user /home/ec2-user/export-orders.sh > /home/ec2-user/export-log.txt 2>&1" >> /etc/crontab
+
+              # Start first run
+              su - ec2-user -c "/home/ec2-user/export-orders.sh"
+            - RDS_ENDPOINT: 
+                Fn::ImportValue: DatabaseStack:RDSEndpoint
+              RDS_USERNAME:
+                Fn::ImportValue: DatabaseStack:DBUsername
+              RDS_PASSWORD:
+                Fn::ImportValue: DatabaseStack:DBPassword
