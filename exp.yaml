@@ -79,9 +79,9 @@ Resources:
 
               # Database info
               DB_SERVER="${RDS_ENDPOINT},1433"
+              DB_NAME="Microsoft.eShopOnWeb.CatalogDb" # cloudshirtdb
               DB_USER="${RDS_USERNAME}"
               DB_PASSWORD="${RDS_PASSWORD}"
-              DB_NAME="Microsoft.eShopOnWeb.CatalogDb" # cloudshirtdb
               S3_BUCKET="${BucketName}"
 
               EXPORT_DIR="/home/ec2-user/db-exports"
@@ -101,7 +101,7 @@ Resources:
               chmod +x /home/ec2-user/export-orders.sh
               chown ec2-user:ec2-user /home/ec2-user/export-orders.sh
 
-              # Set Script on a Timer
+              # Set Script in a cron job
               echo "0 2 * * * ec2-user /home/ec2-user/export-orders.sh > /home/ec2-user/export-log.txt 2>&1" >> /etc/crontab
 
               # Start first run
