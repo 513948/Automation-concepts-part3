@@ -5,7 +5,6 @@ Description: 'CloudShirt - Database Export to S3'
 # Not finnished, nearly works completely, only part is trouble with DBName 
 
 # TODO
-# fix DBName
 # Put dB variables as references to DB stack
 
 Parameters:
@@ -97,7 +96,7 @@ Resources:
           DB_SERVER="cloudshirt-db-instance.c1necaf3jznq.us-east-1.rds.amazonaws.com,1433"
           DB_USER="${DBUsername}"
           DB_PASSWORD="${DBPassword}"
-          DB_NAME="cloudshirtdb"
+          DB_NAME="Microsoft.eShopOnWeb.CatalogDb"
           S3_BUCKET="${BucketName}"
           
           EXPORT_DIR="/home/ec2-user/db-exports"
