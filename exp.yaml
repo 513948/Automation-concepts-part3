@@ -102,7 +102,7 @@ Resources:
               chown ec2-user:ec2-user /home/ec2-user/export-orders.sh
 
               # Set Script in a cron job
-              echo "0 2 * * * ec2-user /home/ec2-user/export-orders.sh > /home/ec2-user/export-log.txt 2>&1" >> /etc/crontab
+              echo "0 4 * * * ec2-user /home/ec2-user/export-orders.sh > /home/ec2-user/export-log.txt 2>&1" >> /etc/crontab
 
               # Start first run
               su - ec2-user -c "/home/ec2-user/export-orders.sh"
