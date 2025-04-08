@@ -1,1 +1,47 @@
+# playbook.yaml
+- name: Deploy cloudhsirt to GKE
+  hosts: localhost
+  tasks:
+    - name: Create a cloudshirt deployment
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: cloudshirt-deployment
+            namespace: default
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: cloudshirt
+            template:
+              metadata:
+                labels:
+                  app: cloudshirt
+              spec:
+                containers:
+                  - name: cloudshirt
+                    image: #TO BE ADDED
+                    ports:
+                      - containerPort: 80
 
+    - name: Create a service
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Service
+          metadata:
+            name: cloudshirt-service
+            labels:
+          app: cloudshirt
+        spec:
+          type: LoadBalancer
+          selector:
+            app: cloudshirt
+          ports:
+            - protocol: TCP
+              port: 80        # External port
+              targetPort: 80  # Port on the pod
