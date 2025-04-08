@@ -1,0 +1,33 @@
+---
+- name: Get logs from all containers in cloudshirt deployment
+  hosts: localhost
+  gather_facts: no
+  vars:
+    namespace: default 
+    deployment_name: cloudshirt
+  tasks:
+
+    - name: Get pods for cloudshirt deployment
+      community.kubernetes.k8s_info:
+        kind: Pod
+        namespace: "{{ namespace }}"
+        label_selectors:
+          - "app={{ deployment_name }}"
+      register: cloudshirt_pods
+
+    - name: Print container logs from all pods
+      shell: |
+        kubectl logs {{ item.metadata.name }} -n {{ namespace }} --all-containers
+      loop: "{{ cloudshirt_pods.resources }}"
+      register: logs_output
+
+    - name: Save logs to local files
+      copy:
+        content: "{{ item.stdout }}"
+        dest: "./cloudshirt-logs/{{ item.item.metadata.name }}.log"
+      loop: "{{ logs_output.results }}"
+
+    - name: Show a summary
+      debug:
+        msg: "Saved logs for pod {{ item.item.metadata.name }} to ./cloudshirt-logs/{{ item.item.metadata.name }}.log"
+      loop: "{{ logs_output.results }}"
