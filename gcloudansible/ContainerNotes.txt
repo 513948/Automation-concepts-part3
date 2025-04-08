@@ -1,0 +1,19 @@
+Open ansible container
+docker run -it -v "C:\Users\Eigenaar\Desktop\Specalizatie\automation concepts\ass 2 gcloud\ansible":/work ansiblecontroller bash
+
+Install Gcloud: 
+RUN 
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && apt-get update -y && apt-get install google-cloud-cli -y
+    
+install gcloud kube plugin:
+apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+
+install kubectl
+apt-get install kubectl
+pip install kubernetes
+
+Setup connection to your gcloud account using json file
+gcloud auth activate-service-account --key-file=
+
+Connect to cluster using terraform output command 
+
