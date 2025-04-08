@@ -1,5 +1,5 @@
 Open ansible container
-docker run -it -v "C:\Users\Eigenaar\Desktop\Specalizatie\automation concepts\ass 2 gcloud\ansible":/work ansiblecontroller bash
+docker run -it -v "C:\Users\Eigenaar\Desktop\Specalizatie\automation concepts\ass 2 gcloud\ansible":/work ansiblecontroller
 
 Install Gcloud: 
 RUN 
