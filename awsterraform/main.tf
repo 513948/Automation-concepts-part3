@@ -1,4 +1,3 @@
-# UNTESTED
 
 # AZ
 data "local_file" "az_template" {
