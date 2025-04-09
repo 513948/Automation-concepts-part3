@@ -76,7 +76,7 @@ capabilities = ["CAPABILITY_NAMED_IAM"]
 
 # BS
 data "local_file" "bs_template" {
-  filename = "${path.module}/bs.yml"
+  filename = "${path.module}/bs.yaml"
 }
 
 resource "aws_cloudformation_stack" "BSStack" {
@@ -91,7 +91,7 @@ capabilities = ["CAPABILITY_NAMED_IAM"]
 
 # ASG
 data "local_file" "asg_template" {
-  filename = "${path.module}/asg.yml"
+  filename = "${path.module}/asg.yaml"
 }
 
 resource "aws_cloudformation_stack" "ASGStack" {
