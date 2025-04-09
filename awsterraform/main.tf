@@ -105,7 +105,7 @@ depends_on = [aws_cloudformation_stack.BSStack]
 
 # ELK
 data "local_file" "elk_template" {
-  filename = "${path.module}/elk.yml"
+  filename = "${path.module}/elk.yaml"
 }
 
 resource "aws_cloudformation_stack" "ELKStack" {
@@ -119,7 +119,7 @@ depends_on = [aws_cloudformation_stack.ASGStack]
 
 # exp
 data "local_file" "exp_template" {
-  filename = "${path.module}/exp.yml"
+  filename = "${path.module}/exp.yaml"
 }
 
 resource "aws_cloudformation_stack" "EXPStack" {
