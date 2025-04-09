@@ -1,0 +1,167 @@
+Description: Template for auto scaling group
+
+Resources:
+  ASGSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: security group for asg group
+      VpcId: !ImportValue AZStack:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '5099'
+          ToPort: '5099'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+
+  # Resource LaunchTemplate for EC2 instances (CloudShirt)
+  launchTemplateCS:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: CloudShirtLT
+      LaunchTemplateData: 
+        InstanceType: t2.micro
+        ImageId: ami-08b5b3a93ed654d19
+        KeyName: vockey
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+            - Key: Name
+              Value: !Sub "CloudShirtApp"
+        UserData: 
+          Fn::Base64:
+            Fn::Sub:
+              - |
+                #!/bin/bash
+
+                # CloudShirt Application Setup Script
+                # This script installs and configures everything needed to run the CloudShirt application
+                # with an external SQL Server, RDS database and EFS file system
+                # Install docker
+                sudo yum install -y docker
+                sudo systemctl start docker
+                sudo systemctl enable docker
+                sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+                sudo chmod +x /usr/local/bin/docker-compose
+
+                # Install git
+                sudo yum install git -y
+                sudo git clone https://github.com/looking4ward/CloudShirt.git
+
+                # Mount EFS
+                yum -y install nfs-utils
+                mkdir /EFS
+                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS_DNS}.efs.us-east-1.amazonaws.com:/ /EFS # example EFS DNS
+                cd /EFS
+                sudo chmod go+rw .
+                cd /
+
+                # Configure AWS CLI
+                ### REPLACE WITH YOUR AWS CREDENTIALS ###
+                AWS_ACCESS_KEY_ID="FILLER" # REPLACE
+                AWS_SECRET_ACCESS_KEY="FILLER" # REPLACE
+                AWS_SESSION_TOKEN="FILLER" # REPLACE                
+                aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY            
+                aws configure set aws_session_token $AWS_SESSION_TOKEN
+
+                # Join the swarm cluster
+                cd /EFS
+                SWARMJOIN=$(cat swarm_join_command)
+                sudo $(echo "$SWARMJOIN")
+
+                # Get the public ip of the ec2-instance
+                INSTANCE_PUBLIC_IP=$(wget -qO- http://checkip.amazonaws.com)
+
+                cat > /home/ec2-user/docker-compose.yml << EOF
+                version: "3.8"
+                services:
+                  web:
+                    image: ${ECR_URI}:web-latest
+                    ports:
+                      - "80:80"
+                    command: >
+                      sh -c "
+                        sed -i 's/Server.*CatalogDb;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_USERNAME};Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/' appsettings.json &&
+                        sed -i 's/Server.*Identity;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_USERNAME};Initial Catalog=Microsoft.eShopOnWeb.Identity;/' appsettings.json &&
+                        dotnet Web.dll
+                      "
+                  
+                  publicapi:
+                    image: ${ECR_URI}:api-latest
+                    ports:
+                      - "5099:80"
+                    command: >
+                      sh -c "
+                        sed -i 's/Server.*CatalogDb;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_USERNAME};Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/' appsettings.json &&
+                        sed -i 's/Server.*Identity;/Server=${RDS_ENDPOINT},1433;User ID=${RDS_USERNAME};Password=${RDS_USERNAME};Initial Catalog=Microsoft.eShopOnWeb.Identity;/' appsettings.json &&
+                        dotnet PublicApi.dll
+                      "
+                EOF
+
+                # Log in to ECR
+                aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin ${ECR_URI}
+
+                # Run the docker-compose 
+                cd /home/ec2-user
+                sudo docker-compose up >> /EFS/$INSTANCE_PUBLIC_IP.docker.log 2>&1 &
+              - RDS_ENDPOINT: 
+                  Fn::ImportValue: DatabaseStack:RDSEndpoint
+                RDS_USERNAME:
+                  Fn::ImportValue: DatabaseStack:DBUsername
+                RDS_PASSWORD:
+                  Fn::ImportValue: DatabaseStack:DBPassword
+                EFS_DNS:
+                  Fn::ImportValue: EFSStack:EFSdns
+                ECR_URI:
+                  Fn::ImportValue: ECRStack:RepoUri
+                
+        SecurityGroupIds:
+          - !Ref ASGSecurityGroup
+  
+  # Resource AutoScalingGroup launch extra instances when needed
+  AutoScalingGroupCS:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref launchTemplateCS
+        Version: !GetAtt launchTemplateCS.LatestVersionNumber
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 2
+      VPCZoneIdentifier:
+        - !ImportValue AZStack:PublicSubnet1
+        - !ImportValue AZStack:PublicSubnet2
+      TargetGroupARNs:
+        - !ImportValue LBStack:TargetGroup
+
+  UpScalingSchedule:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroupCS
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 4
+      Recurrence: "0 22 * * MON-SUN" # 22:00 UTC is 18:00 in ET
+
+  DownScalingSchedule:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroupCS
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 2
+      Recurrence: "0 00 * * MON-SUN" # 00:00 UTC is 20:00 in ET
+      
+Outputs:
+  AutoScalingGroupRef:
+    Description: Reference to the AutoScalingGroup
+    Value: !Ref AutoScalingGroupCS
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "AutoscalingGroup" ] ]

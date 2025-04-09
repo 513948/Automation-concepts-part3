@@ -1,0 +1,75 @@
+Description: Stack for creating the ELK stack
+
+Resources:
+  ELKInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.medium
+      ImageId: ami-08b5b3a93ed654d19
+      KeyName: vockey
+      SubnetId: !ImportValue AZStack:PublicSubnet1
+      SecurityGroupIds:
+        - !Ref ELKSecurityGroup
+      UserData: 
+          Fn::Base64:
+            Fn::Sub:
+              - |
+                #!/bin/bash
+                
+                # Mount EFS
+                yum -y install nfs-utils
+                mkdir /EFS
+                mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS_DNS}.efs.us-east-1.amazonaws.com:/ /EFS # example EFS DNS
+                cd /
+
+                # Get own private IP for configuration
+                # This is needed to configure the ELK stack to use the private IP of the instance
+                OWN_PRIVATE_IP=$(hostname -I | tr -d ' ')
+
+                # Install artifacts & configure
+                # Elastic-stack
+                sudo wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.17.4-x86_64.rpm
+                sudo rpm --install elasticsearch-8.17.4-x86_64.rpm
+                sudo sed -i "s/#network.host: 192.168.0.1/network.host: $OWN_PRIVATE_IP/g" /etc/elasticsearch/elasticsearch.yml
+                sudo sed -i "s/#discovery.seed_hosts: \[\"host1\", \"host2\"\]/discovery.seed_hosts: \[\"$OWN_PRIVATE_IP\"\]/g" /etc/elasticsearch/elasticsearch.yml
+                sudo sed -i "s/xpack.security.enabled: true/xpack.security.enabled: false/g" /etc/elasticsearch/elasticsearch.yml
+
+                # Filebeat
+                sudo wget https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.13.0-x86_64.rpm
+                sudo rpm -vi filebeat-8.13.0-x86_64.rpm
+                sudo sed -i 's|- /var/log/[^ ]*\.log|- /EFS/*.log|g' /etc/filebeat/filebeat.yml
+                sudo sed -i '/^  # Change to true to enable this input configuration.$/{n;s/^  enabled: false$/  enabled: true/}' /etc/filebeat/filebeat.yml
+                sudo sed -i "s/hosts: \["localhost:9200"\]/hosts: \["$OWN_PRIVATE_IP:9200"\]/" /etc/filebeat/filebeat.yml
+                sudo sed -i "s/#host: \"localhost:5601\"/host: \"$OWN_PRIVATE_IP:5601\"/g" /etc/filebeat/filebeat.yml
+
+                # Kibana
+                sudo wget https://artifacts.elastic.co/downloads/kibana/kibana-8.17.4-x86_64.rpm
+                sudo rpm --install kibana-8.17.4-x86_64.rpm
+                sudo sed -i "s/#server.host: \"localhost\"/server.host: \"$OWN_PRIVATE_IP\"/g" /etc/kibana/kibana.yml
+                sudo sed -i "s/#server.name: \"your-hostname\"/server.name: \"cloudshirt-monitoring\"/g" /etc/kibana/kibana.yml
+                sudo sed -i "s/#elasticsearch.hosts: \[\"http:\/\/localhost:9200\"\]/elasticsearch.hosts: \[\"http:\/\/$OWN_PRIVATE_IP:9200\"\]/g" /etc/kibana/kibana.yml
+
+                # Start services
+                sudo systemctl start elasticsearch
+                sudo systemctl start filebeat
+                sudo systemctl start kibana               
+              - EFS_DNS:
+                  Fn::ImportValue: EFSStack:EFSdns
+      Tags:
+        - Key: Name
+          Value: ElkInstance
+
+  ELKSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for ELK instance"
+      VpcId: !ImportValue AZStack:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 9200
+          ToPort: 9200
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5601
+          ToPort: 5601
+          CidrIp: 0.0.0.0/0

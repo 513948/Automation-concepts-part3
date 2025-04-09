@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudShirt - Database Export to S3'
+
+Parameters:
+  BucketName:
+    Description: "S3 bucket name for database exports"
+    Type: String
+    Default: "cloudshirt-db-export"
+    
+Resources:
+  # S3 Bucket for Database Exports
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      VersioningConfiguration:
+        Status: Enabled
+
+  # Instance Profile for the role assignment
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - "LabRole"
+
+  # Security Group for the Instance
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the database export
+      VpcId: 
+        Fn::ImportValue: AZStack:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 1433
+          ToPort: 1433
+          CidrIp: 10.0.0.0/16
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+     
+  # EC2 Instance 
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0bb4c991fa89d4b9b  # Amazon Linux
+      KeyName: vockey
+      SubnetId: 
+        Fn::ImportValue: AZStack:PublicSubnet1
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      IamInstanceProfile: !Ref InstanceProfile
+      Tags:
+        - Key: Name
+          Value: CloudShirt-DB-Export
+      UserData:
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
+
+              # Install tools
+              sudo yum update -y
+              sudo yum install -y unixODBC unixODBC-devel awscli jq
+
+              # SQL tools install
+              sudo curl https://packages.microsoft.com/config/rhel/7/prod.repo -o /etc/yum.repos.d/mssql-release.repo
+              sudo ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
+
+              export PATH="$PATH:/opt/mssql-tools/bin"
+              echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+
+              # Make script
+              cat > /home/ec2-user/export-orders.sh << 'EOF'
+              #!/bin/bash
+
+              # Database info
+              DB_SERVER="${RDS_ENDPOINT},1433"
+              DB_NAME="Microsoft.eShopOnWeb.CatalogDb" # cloudshirtdb
+              DB_USER="${RDS_USERNAME}"
+              DB_PASSWORD="${RDS_PASSWORD}"
+              S3_BUCKET="${BucketName}"
+
+              EXPORT_DIR="/home/ec2-user/db-exports"
+              DATE=$(date +%Y%m%d)
+
+              # setup directory
+              mkdir -p $EXPORT_DIR
+
+              # Take Order table
+              /opt/mssql-tools/bin/bcp "SELECT * FROM dbo.Orders" queryout "$EXPORT_DIR/orders_$DATE.csv" -c -t, -S "$DB_SERVER" -U "$DB_USER" -P "$DB_PASSWORD" -d "$DB_NAME"
+          
+              # Upload to S3
+              aws s3 cp "$EXPORT_DIR/orders_$DATE.csv" "s3://$S3_BUCKET/orders_$DATE.csv"
+
+              EOF
+          
+              chmod +x /home/ec2-user/export-orders.sh
+              chown ec2-user:ec2-user /home/ec2-user/export-orders.sh
+
+              # Set Script in a cron job, time is 4 AM
+              echo "0 4 * * * ec2-user /home/ec2-user/export-orders.sh > /home/ec2-user/export-log.txt 2>&1" >> /etc/crontab
+
+              # Start first run
+              su - ec2-user -c "/home/ec2-user/export-orders.sh"
+            - RDS_ENDPOINT: 
+                Fn::ImportValue: DatabaseStack:RDSEndpoint
+              RDS_USERNAME:
+                Fn::ImportValue: DatabaseStack:DBUsername
+              RDS_PASSWORD:
+                Fn::ImportValue: DatabaseStack:DBPassword

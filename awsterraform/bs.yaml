@@ -1,0 +1,106 @@
+Description: "stack for the build server"
+
+Resources:
+  buildserversecuritygroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: security group for build server
+      VpcId: !ImportValue AZStack:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      
+  # EC2 Instance 
+  Buildserver:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.large
+      ImageId: ami-0bb4c991fa89d4b9b  # Amazon Linux
+      KeyName: vockey
+      SubnetId: 
+        Fn::ImportValue: AZStack:PublicSubnet1
+      SecurityGroupIds:
+        - !Ref buildserversecuritygroup
+      Tags:
+        - Key: Name
+          Value: buildServer
+      UserData:
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
+
+              # Buildserver setup script
+              # This script installs and configures the buildserver
+              # Install docker
+              sudo yum install -y docker
+              sudo systemctl start docker
+              sudo systemctl enable docker
+
+              # Install git
+              sudo yum install git -y
+              sudo git clone https://github.com/looking4ward/CloudShirt.git
+
+              # Mount EFS
+              yum -y install nfs-utils
+              mkdir /EFS
+              mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS_DNS}.efs.us-east-1.amazonaws.com:/ /EFS # example EFS DNS
+              cd /EFS
+              sudo chmod go+rw .
+              cd /
+
+              # Configure AWS CLI
+              ### REPLACE WITH YOUR AWS CREDENTIALS ###
+              AWS_ACCESS_KEY_ID="FILLER" # REPLACE
+              AWS_SECRET_ACCESS_KEY="FILLER" # REPLACE
+              AWS_SESSION_TOKEN="FILLER" # REPLACE
+              
+              aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+              aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY            
+              aws configure set aws_session_token $AWS_SESSION_TOKEN
+
+              # Make nightbuild script
+              cat > /home/ec2-user/nightbuild.sh << 'EOF'
+              #!/bin/bash
+
+              # Get the latest code from the repository
+              cd /
+              sudo rm -Rf CloudShirt
+              sudo git clone https://github.com/looking4ward/CloudShirt.git
+
+              # Log in to ECR
+              aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin ${ECR_URI}
+
+              # Build the web docker image
+              cd /CloudShirt
+              sudo docker build -t cloudshirtwebapp:latest -f src/Web/Dockerfile .
+              sudo docker tag cloudshirtwebapp:latest ${ECR_URI}:web-latest
+              sudo docker push ${ECR_URI}:web-latest
+
+              # Build the api docker image
+              cd /CloudShirt
+              sudo docker build -t cloudshirtapiapp:latest -f src/PublicApi/Dockerfile .
+              sudo docker tag cloudshirtapiapp:latest ${ECR_URI}:api-latest
+              sudo docker push ${ECR_URI}:api-latest
+              EOF
+
+              # Make script executable
+              chmod +x /home/ec2-user/nightbuild.sh
+
+              # Set Script in a cron job, time is 4 AM when executed
+              echo "0 4 * * * ec2-user /home/ec2-user/nightbuild.sh > /home/ec2-user/export-log.txt 2>&1" >> /etc/crontab
+
+              # Docker Swarm setup
+              cd /home/ec2-user
+              sudo docker swarm init
+              sudo docker swarm join-token worker | awk '/docker swarm join/{print}' > ~/swarm_join_command
+              sudo cp ~/swarm_join_command /EFS
+
+              # Run the nightbuild script once to build the images
+              sudo bash /home/ec2-user/nightbuild.sh > /home/ec2-user/initial-build.log 2>&1
+            - EFS_DNS:
+                Fn::ImportValue: EFSStack:EFSdns
+              ECR_URI:
+                Fn::ImportValue: ECRStack:RepoUri

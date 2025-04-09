@@ -1,0 +1,17 @@
+Description: ECR stack
+
+Resources:
+  MyECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: cloudshirt-image-repo
+      ImageTagMutability: MUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+
+Outputs:
+  RepositoryUri:
+    Description: URI of the created ECR repository
+    Value: !GetAtt MyECRRepository.RepositoryUri
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "RepoUri" ] ]

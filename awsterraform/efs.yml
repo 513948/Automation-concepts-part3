@@ -1,0 +1,59 @@
+Description: 'EFS Stack'
+Resources:
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Allow acces to the mounttargets from subnets
+        VpcId: !ImportValue AZStack:VPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: '2049'
+            ToPort: '2049'
+            CidrIp: 0.0.0.0/0
+
+  EFSFileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      Encrypted: "true"
+
+  MountTarget1:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      SubnetId: !ImportValue AZStack:PublicSubnet1
+      SecurityGroups:
+      - Ref: EFSSecurityGroup
+
+  MountTarget2:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      SubnetId: !ImportValue AZStack:PublicSubnet2
+      SecurityGroups:
+      - Ref: EFSSecurityGroup
+
+Outputs:
+  EFSRef:
+    Description: Reference to the EFS
+    Value: !Ref EFSFileSystem
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", EFSFileSystem ] ]
+  
+  EFSdns:
+    Description: "DNS Name of the EFS"
+    Value: !GetAtt EFSFileSystem.FileSystemId
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", "EFSdns" ] ]
+
+  Az1MountTargetRef:
+    Description: Mount target ID
+    Value: !Ref MountTarget1
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MountTarget2 ] ]
+
+  Az2MountTargetRef:
+    Description: Mount target ID
+    Value: !Ref MountTarget2
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MountTarget1 ] ]
+  
