@@ -68,7 +68,7 @@ resource "aws_cloudformation_stack" "ECRStack" {
   name          = "ECRStack"
   template_body = data.local_file.ecr_template.content
 
-depends_on = [aws_cloudformation_stack.ECRStack]
+depends_on = [aws_cloudformation_stack.EFSStack]
 capabilities = ["CAPABILITY_NAMED_IAM"]
 }
 
