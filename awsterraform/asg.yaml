@@ -64,9 +64,11 @@ Resources:
 
                 # Configure AWS CLI
                 ### REPLACE WITH YOUR AWS CREDENTIALS ###
-                AWS_ACCESS_KEY_ID="FILLER" # REPLACE
-                AWS_SECRET_ACCESS_KEY="FILLER" # REPLACE
-                AWS_SESSION_TOKEN="FILLER" # REPLACE                
+                ### REPLACE WITH YOUR AWS CREDENTIALS ###
+                AWS_ACCESS_KEY_ID="" # REPLACE
+                AWS_SECRET_ACCESS_KEY="" # REPLACE
+                AWS_SESSION_TOKEN="" # REPLACE
+              
                 aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                 aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY            
                 aws configure set aws_session_token $AWS_SESSION_TOKEN
