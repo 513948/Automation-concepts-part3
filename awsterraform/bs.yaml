@@ -110,16 +110,25 @@ Resources:
               sudo docker tag cloudshirtapiapp:latest ${ECR_URI}:api-latest
               sudo docker push ${ECR_URI}:api-latest
 
+
               # log in to Gcloud and build to artifact registry
               gcloud auth activate-service-account --key-file=/home/ec2-user/gcloudcred.json
 
-              # Authenticate to Google Cloud  #### REPLACE PROJECT NAME
-              GoogleURL=us-central1-docker.pkg.dev/cloud-concepts-451813/cloudshirt-repository/cloudshirtapiapp:latest
+              # Authenticate to Google Cloud
+              GoogleURL=us-central1-docker.pkg.dev/cloud-concepts-451813/cloudshirt-repository
               gcloud auth configure-docker us-central1-docker.pkg.dev
 
-              # Tag and push to GCP Artifact Registry
-              sudo docker tag cloudshirtapiapp:latest $GoogleURL
-              sudo docker push $GoogleURL
+              # Build the web docker image
+              cd /CloudShirt
+              sudo docker build -t cloudshirtwebapp:latest -f src/Web/Dockerfile .
+              sudo docker tag cloudshirtwebapp:latest $GoogleURL/cloudshirtwebapp:web-latest
+              sudo docker push $GoogleURL/cloudshirtwebapp:web-latest
+
+              # Build the api docker image
+              cd /CloudShirt
+              sudo docker build -t cloudshirtapiapp:latest -f src/PublicApi/Dockerfile .
+              sudo docker tag cloudshirtapiapp:latest $GoogleURL/cloudshirtapiapp:api-latest
+              sudo docker push $GoogleURL/cloudshirtapiapp:api-latest
 
               EOF
 
