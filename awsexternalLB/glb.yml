@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudShirt - Database Export to S3'
+
+Parameters:
+  Backend1:
+    Type: String
+    Default: example1.com
+    Description: First backend address
+
+  Backend2:
+    Type: String
+    Default: example2.com
+    Description: Second backend address
+
+Resources:
+  # Security Group for the Instance
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the database export
+      VpcId: 
+        Fn::ImportValue: AZStack:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 1433
+          ToPort: 1433
+          CidrIp: 10.0.0.0/16
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+     
+  # EC2 Instance 
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0bb4c991fa89d4b9b  # Amazon Linux
+      KeyName: vockey
+      SubnetId: 
+        Fn::ImportValue: AZStack:PublicSubnet1
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      Tags:
+        - Key: Name
+          Value: nginx-loadbalancer
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          exec > /var/log/user-data.log 2>&1
+          set -x
+
+          # Update system
+          yum update -y
+
+          # Install nginx
+          amazon-linux-extras enable nginx1
+          yum clean metadata
+          yum install -y nginx
+
+          # Configure nginx
+          cat > /etc/nginx/nginx.conf <<EOF
+          worker_processes auto;
+          events {
+              worker_connections 1024;
+          }
+          http {
+              upstream backend {
+                  server ${Backend1};
+                  server ${Backend2};
+              }
+
+              server {
+                  listen 80;
+                  location / {
+                      proxy_pass http://backend;
+                      proxy_set_header Host \$host;
+                      proxy_set_header X-Real-IP \$remote_addr;
+                      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto \$scheme;
+                  }
+              }
+          }
+          EOF
+
+          # Start nginx
+          systemctl enable nginx
+          systemctl start nginx
+
+Outputs:
+  InstancePublicIP:
+    Description: Public IP of the EC2 instance
+    Value: !GetAtt EC2Instance.PublicIp
