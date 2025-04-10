@@ -1,47 +1,108 @@
-# playbook.yaml
-- name: Deploy cloudhsirt to GKE
+---
+- name: Deploy web and publicapi services to Kubernetes
   hosts: localhost
+  gather_facts: no
   tasks:
-    - name: Create a cloudshirt deployment
+
+
+    - name: Create Deployment for web service
       kubernetes.core.k8s:
         state: present
         definition:
-          apiVersion: apps/v1
+          api_version: apps/v1
           kind: Deployment
-          metadata:
-            name: cloudshirt-deployment
+          metadata:  
+            name: web-deployment
             namespace: default
           spec:
-            replicas: 2
+            replicas: 5
             selector:
               matchLabels:
-                app: cloudshirt
+                app: web
             template:
               metadata:
                 labels:
-                  app: cloudshirt
+                  app: web
               spec:
                 containers:
-                  - name: cloudshirt
-                    image: #TO BE ADDED
+                  - name: web
+                    image: "us-central1-docker.pkg.dev/cloud-concepts-451813/cloudshirt-repository/cloudshirtwebapp:web-latest"
                     ports:
                       - containerPort: 80
+                    command:
+                      - "sh"
+                      - "-c"
+                      - |
+                        sed -i 's/Server.*CatalogDb;/Server=cloudshirt-db-instance.c1necaf3jznq.us-east-1.rds.amazonaws.com,1433;User ID=TestTest;Password=TestTest;Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/' appsettings.json &&
+                        sed -i 's/Server.*Identity;/Server=cloudshirt-db-instance.c1necaf3jznq.us-east-1.rds.amazonaws.com,1433;User ID=TestTest;Password=TestTest;Initial Catalog=Microsoft.eShopOnWeb.Identity;/' appsettings.json &&
+                        dotnet Web.dll
 
-    - name: Create a service
+    - name: Expose the web service via a Kubernetes Service
       kubernetes.core.k8s:
         state: present
         definition:
-          apiVersion: apps/v1
+          api_version: v1
           kind: Service
           metadata:
-            name: cloudshirt-service
-            labels:
-          app: cloudshirt
-        spec:
-          type: LoadBalancer
-          selector:
-            app: cloudshirt
-          ports:
-            - protocol: TCP
-              port: 80        # External port
-              targetPort: 80  # Port on the pod
+            name: web-service
+            namespace: default
+          spec:
+            selector:
+              app: web
+            ports:
+              - protocol: TCP
+                port: 80
+                targetPort: 80
+            type: LoadBalancer
+
+                  
+    - name: Create Deployment for publicapi service
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          api_version: apps/v1
+          kind: Deployment
+          metadata: 
+            name: publicapi-deployment
+            namespace: default
+          spec:
+            replicas: 5
+            selector:
+              matchLabels:
+                app: publicapi
+            template:
+              metadata:
+                labels:
+                  app: publicapi
+              spec:
+                containers:
+                  - name: publicapi
+                    image: "us-central1-docker.pkg.dev/cloud-concepts-451813/cloudshirt-repository/cloudshirtapiapp:api-latest"
+                    ports:
+                      - containerPort: 80
+                    command:
+                        - "sh"
+                        - "-c"
+                        - |
+                          sed -i 's/Server.*CatalogDb;/Server=cloudshirt-db-instance.c1necaf3jznq.us-east-1.rds.amazonaws.com,1433;User ID=TestTest;Password=TestTest;Initial Catalog=Microsoft.eShopOnWeb.CatalogDb;/' appsettings.json &&
+                          sed -i 's/Server.*Identity;/Server=cloudshirt-db-instance.c1necaf3jznq.us-east-1.rds.amazonaws.com,1433;User ID=TestTest;Password=TestTest;Initial Catalog=Microsoft.eShopOnWeb.Identity;/' appsettings.json &&
+                          dotnet Web.dll
+
+
+    - name: Expose the publicapi service via a Kubernetes Service
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          api_version: v1
+          kind: Service
+          metadata:
+            name: publicapi-service
+            namespace: default
+          spec:
+            selector:
+              app: publicapi
+            ports:
+              - protocol: TCP
+                port: 5099
+                targetPort: 80
+            type: LoadBalancer
