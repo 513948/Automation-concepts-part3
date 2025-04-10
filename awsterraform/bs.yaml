@@ -43,6 +43,21 @@ Resources:
               sudo yum install git -y
               sudo git clone https://github.com/looking4ward/CloudShirt.git
 
+              # Install Gcloud
+              yum install -y yum-utils
+
+              cat <<EOT > /etc/yum.repos.d/google-cloud-sdk.repo
+              [google-cloud-cli]
+              name=Google Cloud CLI
+              baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el7-x86_64
+              enabled=1
+              gpgcheck=1
+              repo_gpgcheck=1
+              gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+              EOT
+
+              yum install -y google-cloud-cli
+
               # Mount EFS
               yum -y install nfs-utils
               mkdir /EFS
@@ -53,13 +68,23 @@ Resources:
 
               # Configure AWS CLI
               ### REPLACE WITH YOUR AWS CREDENTIALS ###
-              AWS_ACCESS_KEY_ID="FILLER" # REPLACE
-              AWS_SECRET_ACCESS_KEY="FILLER" # REPLACE
-              AWS_SESSION_TOKEN="FILLER" # REPLACE
+              AWS_ACCESS_KEY_ID="" # REPLACE
+              AWS_SECRET_ACCESS_KEY="" # REPLACE
+              AWS_SESSION_TOKEN="" # REPLACE
               
               aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
               aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY            
               aws configure set aws_session_token $AWS_SESSION_TOKEN
+
+              #configure gcloud authentication INSERT YOUR GCLOUD JSON CREDS HERE
+              cat <<EOT > /home/ec2-user/gcloudcred.json 
+              # PASTE IT HEREEE
+              #
+              #
+              #
+              #
+              #
+              EOT
 
               # Make nightbuild script
               cat > /home/ec2-user/nightbuild.sh << 'EOF'
@@ -84,6 +109,18 @@ Resources:
               sudo docker build -t cloudshirtapiapp:latest -f src/PublicApi/Dockerfile .
               sudo docker tag cloudshirtapiapp:latest ${ECR_URI}:api-latest
               sudo docker push ${ECR_URI}:api-latest
+
+              # log in to Gcloud and build to artifact registry
+              gcloud auth activate-service-account --key-file=/home/ec2-user/gcloudcred.json
+
+              # Authenticate to Google Cloud  #### REPLACE PROJECT NAME
+              GoogleURL=us-central1-docker.pkg.dev/cloud-concepts-451813/cloudshirt-repository/cloudshirtapiapp:latest
+              gcloud auth configure-docker us-central1-docker.pkg.dev
+
+              # Tag and push to GCP Artifact Registry
+              sudo docker tag cloudshirtapiapp:latest $GoogleURL
+              sudo docker push $GoogleURL
+
               EOF
 
               # Make script executable
