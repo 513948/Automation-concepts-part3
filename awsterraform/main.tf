@@ -85,7 +85,11 @@ resource "aws_cloudformation_stack" "BSStack" {
 depends_on = [aws_cloudformation_stack.ECRStack]
 capabilities = ["CAPABILITY_NAMED_IAM"]
 }
-
+# Wait time for bs to do first build
+resource "time_sleep" "wait_5_mins" {
+  depends_on = [aws_cloudformation_stack.BSStack]
+  create_duration = "300s"
+}
 
 
 # ASG
@@ -97,7 +101,7 @@ resource "aws_cloudformation_stack" "ASGStack" {
   name          = "ASGStack"
   template_body = data.local_file.asg_template.content
 
-depends_on = [aws_cloudformation_stack.BSStack]
+depends_on = [time_sleep.wait_5_mins]
 }
 
 
