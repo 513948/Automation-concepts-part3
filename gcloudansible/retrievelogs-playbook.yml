@@ -1,33 +1,33 @@
 ---
-- name: Get logs from all containers in cloudshirt deployment
+- name: Retrieve logs of Kubernetes deployment pods
   hosts: localhost
   gather_facts: no
   vars:
-    namespace: default 
-    deployment_name: cloudshirt
+    namespace: default  # Change this to your desired namespace
+    deployment_name: web  # Change this to your deployment name
+    log_output_dir: ./k8s_logs  # Local directory to store logs
+
   tasks:
+    - name: Ensure log output directory exists
+      ansible.builtin.file:
+        path: "{{ log_output_dir }}"
+        state: directory
+        mode: '0755'
 
-    - name: Get pods for cloudshirt deployment
-      community.kubernetes.k8s_info:
-        kind: Pod
-        namespace: "{{ namespace }}"
-        label_selectors:
-          - "app={{ deployment_name }}"
-      register: cloudshirt_pods
+    - name: Get pods for deployment
+      ansible.builtin.command: >
+        kubectl get pods -n {{ namespace }}
+        -l app={{ deployment_name }}
+        -o jsonpath='{.items[*].metadata.name}'
+      register: pod_list_raw
+      changed_when: false
 
-    - name: Print container logs from all pods
-      shell: |
-        kubectl logs {{ item.metadata.name }} -n {{ namespace }} --all-containers
-      loop: "{{ cloudshirt_pods.resources }}"
-      register: logs_output
+    - name: Convert pod list string to list
+      ansible.builtin.set_fact:
+        pod_list: "{{ pod_list_raw.stdout.split() }}"
 
-    - name: Save logs to local files
-      copy:
-        content: "{{ item.stdout }}"
-        dest: "./cloudshirt-logs/{{ item.item.metadata.name }}.log"
-      loop: "{{ logs_output.results }}"
-
-    - name: Show a summary
-      debug:
-        msg: "Saved logs for pod {{ item.item.metadata.name }} to ./cloudshirt-logs/{{ item.item.metadata.name }}.log"
-      loop: "{{ logs_output.results }}"
+    - name: Get logs for each pod
+      ansible.builtin.shell: >
+        kubectl logs -n {{ namespace }} {{ item }} > {{ log_output_dir }}/{{ item }}.log
+      loop: "{{ pod_list }}"
+      changed_when: false
